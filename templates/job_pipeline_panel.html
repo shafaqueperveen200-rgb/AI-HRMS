@@ -1,0 +1,72 @@
+<div class="pipeline-panel-header">
+    <div>
+        <span class="pipeline-job-id">{{ job.id }}</span>
+        <h2>{{ job.title }}</h2>
+        <p>{{ job.dept }} &middot; {{ job.location }} &middot; {{ job.type }}</p>
+    </div>
+    <span class="pipeline-job-status">{{ job.status }}</span>
+</div>
+
+<section class="pipeline-panel-section">
+    <div class="pipeline-section-heading">
+        <h3>Employee Applications</h3>
+        <span>{{ applications|length }}</span>
+    </div>
+    {% if applications %}
+        <div class="pipeline-applications-list">
+            {% for application in applications %}
+                <article class="pipeline-applicant-card">
+                    <div class="pipeline-applicant-main">
+                        <div class="pipeline-applicant-avatar">{{ application.name[:2].upper() }}</div>
+                        <div>
+                            <strong>{{ application.name }}</strong>
+                            <a href="mailto:{{ application.email }}">{{ application.email }}</a>
+                        </div>
+                    </div>
+                    <div class="pipeline-applicant-meta">
+                        <span>Applied {{ application.date }}</span>
+                        <span class="pipeline-status-chip">{{ application.status }}</span>
+                    </div>
+                    {% if application.resume_file %}
+                        <a class="pipeline-resume-link" href="{{ url_for('static', filename='resumes/' + application.resume_file) }}" target="_blank" rel="noopener">View employee resume</a>
+                    {% else %}
+                        <span class="pipeline-resume-missing">No resume on profile</span>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="pipeline-empty-state">No employee applications for this job yet.</p>
+    {% endif %}
+</section>
+
+<section class="pipeline-panel-section">
+    <div class="pipeline-section-heading">
+        <h3>Other Candidate Records</h3>
+        <span>{{ candidates|length }}</span>
+    </div>
+    {% if candidates %}
+        <div class="pipeline-applications-list">
+            {% for candidate in candidates %}
+                <article class="pipeline-applicant-card">
+                    <div class="pipeline-applicant-main">
+                        <div class="pipeline-applicant-avatar">{{ candidate.name[:2].upper() }}</div>
+                        <div>
+                            <strong>{{ candidate.name }}</strong>
+                            <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
+                        </div>
+                    </div>
+                    <div class="pipeline-applicant-meta">
+                        <span>{{ candidate.stage }}</span>
+                        <span class="pipeline-status-chip">{{ candidate.match }}</span>
+                    </div>
+                    <a class="pipeline-resume-link" href="{{ url_for('view_candidate', name=candidate.name) }}">Review candidate profile</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="pipeline-empty-state">No separate candidate records for this job.</p>
+    {% endif %}
+</section>
+
+<a href="{{ url_for('applications') }}" class="pipeline-manage-link">Manage application statuses &rarr;</a>

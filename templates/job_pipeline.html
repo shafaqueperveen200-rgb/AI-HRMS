@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline — {{ job.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='job_pipeline.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        {% include 'admin_sidebar.html' %}
+        
+        <main class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1>Candidate Pipeline</h1>
+                    <p>{{ job.title }} &nbsp;•&nbsp; 🏢 {{ job.dept }} &nbsp;•&nbsp; 📍 {{ job.location }}</p>
+                </div>
+                <div class="header-profile">
+                    <a href="{{ url_for('jobs') }}" class="btn-job-secondary">← Back to Jobs</a>
+                </div>
+            </header>
+
+            <div class="dashboard-content" style="padding: 2.5rem;">
+                <div class="pipeline-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: #4f46e5; background: #eef2ff; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 700;">{{ job.id }}</span>
+                            <h3 style="margin: 0.5rem 0 0 0; color: #0f172a; font-size: 1.25rem;">Active Applicant Pool</h3>
+                        </div>
+                        <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">Total Applicants: <strong>{{ candidates|length + applications|length }}</strong></span>
+                    </div>
+                    
+                    <table class="pipeline-table">
+                        <thead>
+                            <tr>
+                                <th>Candidate Name</th>
+                                <th>Email Address</th>
+                                <th>Current Stage</th>
+                                <th>AI Match Score</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in candidates %}
+                            <tr>
+                                <td style="font-weight: 600; display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="candidate-avatar">{{ c.name[:2].upper() }}</div>
+                                    {{ c.name }}
+                                </td>
+                                <td style="color: #64748b;">{{ c.email }}</td>
+                                <td>
+                                    <span class="pipeline-stage-badge">{{ c.stage }}</span>
+                                </td>
+                                <td>
+                                    <span class="ai-match-score">✨ {{ c.match }}</span>
+                                </td>
+                                <td style="text-align: right;">
+                                   <a href="{{ url_for('view_candidate', name=c.name) }}" class="btn-job-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">Review Profile</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pipeline-container" style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; color: #0f172a; font-size: 1.25rem;">Employee Applications</h3>
+                        <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">{{ applications|length }} application(s)</span>
+                    </div>
+                    <table class="pipeline-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Email</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                                <th>Resume</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td style="font-weight: 600;">{{ application.name }}</td>
+                                <td>{{ application.email }}</td>
+                                <td>{{ application.date }}</td>
+                                <td><span class="pipeline-stage-badge">{{ application.status }}</span></td>
+                                <td>
+                                    {% if application.resume_file %}
+                                        <a href="{{ url_for('static', filename='resumes/' + application.resume_file) }}" target="_blank" rel="noopener">View resume</a>
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 30px; color: #64748b;">No employee applications for this job yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

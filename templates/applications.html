@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+{% from "_pagination.html" import render_pagination with context %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applications Management — WorkforcePro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='applications.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        {% include 'admin_sidebar.html' %}
+        
+        <!-- Main Content -->
+        <main class="main-wrapper">
+            <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
+                <div class="header-title">
+                    <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 700;">Job Applications Hub</h1>
+                    <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.875rem;">Screen candidate submissions, review AI matching scores, and schedule interviews.</p>
+                </div>
+            </header>
+
+            <div class="dashboard-content" style="padding: 2.5rem;">
+                
+                <!-- Metric Summary Row -->
+                <div class="applications-metrics-grid">
+                    <div style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <span style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Total Applications</span>
+                        <h2 style="margin: 0.5rem 0 0 0; color: #0f172a; font-size: 1.8rem;">{{ pagination.total }}</h2>
+                    </div>
+                    <div style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <span style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pending Review</span>
+                        <h2 style="margin: 0.5rem 0 0 0; color: #d97706; font-size: 1.8rem;">
+                            {{ pending_review_count }}
+                        </h2>
+                    </div>
+                    <div style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <span style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Shortlisted & Interviewing</span>
+                        <h2 style="margin: 0.5rem 0 0 0; color: #059669; font-size: 1.8rem;">
+                            {{ active_application_count }}
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Search & Filters Toolbar -->
+                <form method="GET" action="{{ url_for('applications') }}" style="background: #ffffff; padding: 14px 20px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px; margin-bottom: 24px;">
+                    <div style="position: relative; flex-grow: 1;">
+                        <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                        <input type="text" name="search" placeholder="Search by applicant name or email..." value="{{ search_query }}" style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; outline: none; background: #f8fafc;">
+                    </div>
+
+                    <select name="role" class="form-select" onchange="this.form.submit()" style="width: 200px; font-size: 0.875rem;">
+                        <option value="">All Roles</option>
+                        {% for r in roles %}
+                            <option value="{{ r }}" {% if role_filter == r %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="status" class="form-select" onchange="this.form.submit()" style="width: 170px; font-size: 0.875rem;">
+                        <option value="">All Statuses</option>
+                        <option value="Pending Review" {% if status_filter == 'Pending Review' %}selected{% endif %}>Pending Review</option>
+                        <option value="Shortlisted" {% if status_filter == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                        <option value="Interviewing" {% if status_filter == 'Interviewing' %}selected{% endif %}>Interviewing</option>
+                        <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+
+                    <a href="{{ url_for('applications') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg me-1"></i> Clear</a>
+                </form>
+
+                <!-- Applications Table Container -->
+                <div class="attendance-card" style="background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; color: #0f172a; font-size: 1.25rem;">Incoming Submissions</h3>
+                        <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">Showing <strong>{{ pagination.first_item }}-{{ pagination.last_item }}</strong> of {{ pagination.total }} applications</span>
+                    </div>
+                    
+                    <table class="attendance-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.8rem; color: #64748b; height: 42px;">
+                                <th style="padding: 12px;">Applicant Profile</th>
+                                <th style="padding: 12px;">Target Position</th>
+                                <th style="padding: 12px;">Submitted On</th>
+                                <th style="padding: 12px;">AI Match</th>
+                                <th style="padding: 12px;">Current Status / Schedule</th>
+                                <th style="padding: 12px; text-align: right;">Action / Update Stage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr style="border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; height: 60px;">
+                                <td style="padding: 12px; font-weight: 600; display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="candidate-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+                                        {{ app.name[:2].upper() }}
+                                    </div>
+                                    <div>
+                                        {{ app.name }}
+                                        <span style="display: block; font-size: 0.75rem; color: #64748b; font-weight: 400;">{{ app.email }}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; color: #4f46e5; font-weight: 600;">{{ app.role }}</td>
+                                <td style="padding: 12px; color: #64748b;">{{ app.date }}</td>
+                                <td style="padding: 12px;">
+                                    <span class="status-pill" style="background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">✨ {{ app.match }}</span>
+                                </td>
+                                <td style="padding: 12px;">
+                                    {% if app.status == 'Shortlisted' %}
+                                        <span class="status-pill" style="background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Shortlisted</span>
+                                    {% elif app.status == 'Interviewing' %}
+                                        <div>
+                                            <span class="status-pill" style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Interviewing</span>
+                                            {% if app.interview_date %}
+                                                <small style="display: block; font-size: 0.7rem; color: #475569; margin-top: 2px;"><i class="bi bi-calendar-event"></i> {{ app.interview_date }} at {{ app.interview_time }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif app.status == 'Pending Review' %}
+                                        <span class="status-pill" style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Pending Review</span>
+                                    {% else %}
+                                        <span class="status-pill" style="background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px; text-align: right;">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                                        <!-- Status Update Form -->
+                                        <form action="{{ url_for('update_application', app_id=app.id) }}" method="POST" style="display: inline-flex; gap: 0.4rem; align-items: center;">
+                                            <select name="status" class="attendance-select" style="padding: 0.3rem; border-radius: 0.4rem; border: 1px solid #cbd5e1; font-size: 0.75rem; background: white;">
+                                                <option value="Pending Review" {% if app.status == 'Pending Review' %}selected{% endif %}>Pending</option>
+                                                <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlist</option>
+                                                <option value="Interviewing" {% if app.status == 'Interviewing' %}selected{% endif %}>Interview</option>
+                                                <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Reject</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Save</button>
+                                        </form>
+
+                                        <!-- Schedule Interview Button -->
+                                        <button type="button" class="btn btn-outline-primary btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#scheduleModal{{ app.id }}">
+                                            <i class="bi bi-calendar-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Schedule Interview Modal for each applicant -->
+                            <div class="modal fade" id="scheduleModal{{ app.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ url_for('schedule_application_interview', app_id=app.id) }}" method="POST">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold">Schedule Interview — {{ app.name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold">Interview Date</label>
+                                                    <input type="date" name="interview_date" class="form-control" required value="{{ app.interview_date or '' }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold">Interview Time</label>
+                                                    <input type="time" name="interview_time" class="form-control" required value="{{ app.interview_time or '' }}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary btn-sm px-4">Confirm Schedule</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 3rem; color: #64748b;">
+                                    No job applications found matching your criteria.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {{ render_pagination(pagination) }}
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

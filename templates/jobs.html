@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+{% from "_pagination.html" import render_pagination with context %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkforcePro — Job Openings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='jobs.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        {% include 'admin_sidebar.html' %}
+
+        <main class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1>Job Openings</h1>
+                    <p>Manage active vacancies and applicant pipelines.</p>
+                </div>
+                <div class="header-profile">
+                    <a href="{{ url_for('add_job') }}" class="btn-job-primary">+ Post New Role</a>
+                </div>
+            </header>
+
+            <div class="dashboard-content jobs-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; color: #0f172a; font-size: 1.2rem;">Job Requisitions</h3>
+                    <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">Showing {{ pagination.first_item }}-{{ pagination.last_item }} of {{ pagination.total }} matching positions</span>
+                </div>
+
+                <form method="GET" action="{{ url_for('jobs') }}" class="jobs-filter-bar">
+                    <label class="jobs-search-field">
+                        <span>Search jobs</span>
+                        <input type="search" name="q" value="{{ search_query }}" placeholder="Search title, department, location, or job ID">
+                    </label>
+                    <label>
+                        <span>Department</span>
+                        <select name="department">
+                            <option value="">All departments</option>
+                            {% for department in departments %}
+                                <option value="{{ department }}" {% if department_filter == department %}selected{% endif %}>{{ department }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        <span>Employment type</span>
+                        <select name="type">
+                            <option value="">All types</option>
+                            {% for job_type in job_types %}
+                                <option value="{{ job_type }}" {% if type_filter == job_type %}selected{% endif %}>{{ job_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        <span>Status</span>
+                        <select name="status">
+                            <option value="">All statuses</option>
+                            {% for job_status in statuses %}
+                                <option value="{{ job_status }}" {% if status_filter == job_status %}selected{% endif %}>{{ job_status }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <div class="jobs-filter-actions">
+                        <button type="submit" class="btn-job-primary">Search / Filter</button>
+                        <a href="{{ url_for('jobs') }}" class="btn-job-secondary">Clear</a>
+                    </div>
+                </form>
+
+                <div class="jobs-grid">
+                    {% for job in jobs %}
+                    <div class="job-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <span style="font-family: monospace; font-size: 0.75rem; color: #4f46e5; background: #eef2ff; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">{{ job.id }}</span>
+                            <span class="job-badge-active {% if job.status != 'Active' %}job-badge-closed{% endif %}">{{ job.status }}</span>
+                        </div>
+                        
+                        <h2 style="font-size: 1.15rem; color: #0f172a; margin: 0 0 0.5rem 0; font-weight: 700;">{{ job.title }}</h2>
+                        <p style="color: #64748b; font-size: 0.875rem; margin: 0 0 1.25rem 0;">🏢 {{ job.dept }} &nbsp;•&nbsp; 📍 {{ job.location }} &nbsp;•&nbsp; {{ job.type }}</p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: 1rem;">
+    <div>
+        <span style="display: block; font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Candidates</span>
+        <span style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">👥 {{ job_applicants[job.id] }} Applied</span>
+    </div>
+    <button type="button" class="btn-job-secondary pipeline-open-button" data-pipeline-url="{{ url_for('view_pipeline', job_id=job.id) }}">View Pipeline →</button>
+</div>
+                    </div>
+                    {% else %}
+                    <div class="jobs-empty-state">
+                        <h2>No jobs match these filters</h2>
+                        <p>Try another search or clear your filters.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {{ render_pagination(pagination) }}
+            </div>
+        </main>
+    </div>
+    <div class="pipeline-overlay" id="pipelineOverlay" hidden></div>
+    <aside class="pipeline-drawer" id="pipelineDrawer" aria-hidden="true" aria-label="Job applicant pipeline">
+        <button type="button" class="pipeline-close-button" id="pipelineClose" aria-label="Close pipeline">&times;</button>
+        <div class="pipeline-drawer-content" id="pipelineContent">
+            <p class="pipeline-loading">Choose “View Pipeline” on a job to see its applicants.</p>
+        </div>
+    </aside>
+    <script>
+        const pipelineDrawer = document.getElementById("pipelineDrawer");
+        const pipelineOverlay = document.getElementById("pipelineOverlay");
+        const pipelineContent = document.getElementById("pipelineContent");
+
+        function closePipeline() {
+            pipelineDrawer.classList.remove("is-open");
+            pipelineDrawer.setAttribute("aria-hidden", "true");
+            pipelineOverlay.hidden = true;
+            document.body.classList.remove("pipeline-open");
+        }
+
+        document.querySelectorAll(".pipeline-open-button").forEach((button) => {
+            button.addEventListener("click", async () => {
+                pipelineDrawer.classList.add("is-open");
+                pipelineDrawer.setAttribute("aria-hidden", "false");
+                pipelineOverlay.hidden = false;
+                document.body.classList.add("pipeline-open");
+                pipelineContent.innerHTML = '<p class="pipeline-loading">Loading applicant pipeline...</p>';
+                try {
+                    const response = await fetch(button.dataset.pipelineUrl, {
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Request failed (${response.status})`);
+                    }
+                    pipelineContent.innerHTML = await response.text();
+                } catch (error) {
+                    pipelineContent.innerHTML = '<div class="pipeline-error">Could not load this pipeline. Please try again.</div>';
+                    console.error("Unable to load job pipeline:", error);
+                }
+            });
+        });
+
+        document.getElementById("pipelineClose").addEventListener("click", closePipeline);
+        pipelineOverlay.addEventListener("click", closePipeline);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closePipeline();
+        });
+    </script>
+</body>
+</html>

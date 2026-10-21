@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — WorkforcePro</title>
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Additional precision styling matching the reference design */
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
+            margin: 0;
+        }
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--admin-sidebar-width);
+            background: linear-gradient(180deg, #17152F 0%, #131126 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed {
+            transform: translateX(calc(0px - var(--admin-sidebar-width)));
+        }
+        .sidebar-brand {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-toggle-btn,
+        .sidebar-reopen-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: #C7D2FE;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+        .sidebar-toggle-btn:hover {
+            background: #252044;
+            color: #C7D2FE;
+            transform: scale(1.08);
+        }
+        .sidebar-toggle-btn {
+            margin-left: auto;
+            color: #B8B6D9;
+        }
+        .sidebar-reopen-btn {
+            display: none;
+            flex-shrink: 0;
+            border-color: #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+        }
+        .sidebar-reopen-btn:hover {
+            background: #f1f5f9;
+        }
+        .sidebar.collapsed ~ .main-wrapper .sidebar-reopen-btn {
+            display: inline-flex;
+        }
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            min-width:38px;
+            min-height:38px;
+            background: #4f46e5;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+        .logo-text span {
+            color: #4f46e5;
+        }
+        .sidebar-menu {
+            padding: 20px 12px;
+            list-style: none;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #B8B6D9;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .sidebar-menu li a:hover {
+            background-color: #252044;
+            color: #FFFFFF;
+        }
+        .sidebar-menu li a.active {
+            background-color: #4F46E5;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .sidebar-menu li a:hover i {
+            color: #C7D2FE;
+        }
+        .sidebar-menu li a.active i {
+            color: #C7D2FE;
+        }
+        .sidebar-footer {
+            padding: 20px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ef4444;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .logout-link:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Main Wrapper */
+        .main-wrapper {
+            margin-left: var(--admin-sidebar-width);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar.collapsed ~ .main-wrapper {
+            margin-left: 0;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: #ffffff;
+            padding: 14px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        .search-container {
+            position: relative;
+            width: 360px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 8px 14px 8px 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            outline: none;
+        }
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .notification-menu {
+            position: relative;
+        }
+        .notification-bell {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #475569;
+            cursor: pointer;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .notification-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            z-index: 110;
+            width: min(360px, calc(100vw - 32px));
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+        }
+        .notification-panel.is-open {
+            display: block;
+        }
+        .notification-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+        }
+        .notification-panel-header span {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+        .notification-list {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        .notification-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            color: #334155;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .notification-item:last-child {
+            border-bottom: 0;
+        }
+        .notification-item:hover {
+            background: #f8fafc;
+        }
+        .notification-item-icon {
+            display: grid;
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border-radius: 50%;
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .notification-item-content {
+            display: grid;
+            gap: 3px;
+            min-width: 0;
+        }
+        .notification-item-content strong {
+            color: #0f172a;
+            font-size: 0.875rem;
+        }
+        .notification-item-content span,
+        .notification-item-content small,
+        .notification-empty {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+        .notification-empty {
+            margin: 0;
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .user-info .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            display: block;
+        }
+        .user-info .role {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* Dashboard Content Area */
+        .dashboard-content {
+            padding: 30px;
+        }
+        .dashboard-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .header-title p {
+            margin: 4px 0 0 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .pipeline-stage-badge {
+            background-color: #dcfce7;
+            color: #15803d;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .date-display {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Metrics Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .metric-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .metric-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+        }
+        .metric-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .icon-blue { background: #eff6ff; color: #2563eb; }
+        .icon-purple { background: #f5f3ff; color: #7c3aed; }
+        .icon-orange { background: #fff7ed; color: #ea580c; }
+        .icon-green { background: #f0fdf4; color: #16a34a; }
+
+        .metric-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .metric-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .metric-footer i {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .quick-actions-title h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #0f172a;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .quick-actions-title p {
+            margin: 2px 0 0 0;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .quick-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .q-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .q-btn-blue { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .q-btn-blue:hover { background: #dbeafe; }
+        .q-btn-purple { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+        .q-btn-purple:hover { background: #ede9fe; }
+        .q-btn-orange { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .q-btn-orange:hover { background: #ffedd5; }
+        .q-btn-green { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .q-btn-green:hover { background: #dcfce7; }
+
+        /* Lower Grid (Chart & Activity) */
+        .lower-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .panel-card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+        .panel-subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+        .select-filter {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.8rem;
+            background: #fff;
+            color: #475569;
+            outline: none;
+        }
+
+        /* Activity Feed */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .activity-details {
+            flex-grow: 1;
+        }
+        .activity-text {
+            font-size: 0.85rem;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 600;
+        }
+        .activity-sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+        .activity-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        /* Footer tip banner */
+        .dashboard-footer-tip {
+            background: #ffffff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .dashboard-footer-tip i {
+            color: #eab308;
+        }
+        .leave-approval-card {
+            margin: 24px 0;
+            padding: 22px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+        .leave-approval-table { width: 100%; border-collapse: collapse; }
+        .leave-approval-table th, .leave-approval-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .leave-approval-table th {
+            color: #64748b;
+            font-size: .72rem;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .leave-status-pill {
+            display: inline-flex;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: .72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .leave-status-pill.awaiting { background: #eef2ff; color: #4338ca; }
+        .leave-status-pill.approved { background: #f0fdf4; color: #15803d; }
+        .leave-status-pill.rejected { background: #fef2f2; color: #b91c1c; }
+        .leave-action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            border: 1px solid #c7d2fe;
+            border-radius: 7px;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .leave-action-button:hover { background: #e0e7ff; }
+        .leave-decision-form { display: inline-flex; gap: 6px; }
+        .leave-decision-button {
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 7px;
+            color: #fff;
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .leave-decision-button.approve { background: #16a34a; }
+        .leave-decision-button.reject { background: #dc2626; }
+        .leave-request-dialog {
+            width: min(520px, calc(100% - 32px));
+            max-height: min(90vh, 700px);
+            padding: 0;
+            overflow: auto;
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .25);
+        }
+        .leave-request-dialog::backdrop { background: rgba(15, 23, 42, .55); }
+        .leave-dialog-header, .leave-dialog-footer { padding: 16px 20px; }
+        .leave-dialog-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; }
+        .leave-dialog-body { display: grid; gap: 14px; padding: 20px; }
+        .leave-dialog-detail { margin: 0; color: #475569; font-size: .88rem; line-height: 1.5; }
+        .leave-dialog-detail strong { color: #0f172a; }
+        .leave-dialog-footer { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #e2e8f0; }
+        .leave-dialog-footer button[type="submit"] { padding: 9px 14px; border: 0; border-radius: 8px; background: #4f46e5; color: #fff; font-weight: 600; }
+        .leave-flash-message { margin-bottom: 16px; padding: 11px 14px; border: 1px solid #bbf7d0; border-radius: 8px; background: #f0fdf4; color: #166534; }
+        @media (max-width: 760px) {
+            .leave-approval-table { min-width: 700px; }
+            .leave-approval-scroll { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        
+        <!-- Sidebar Navigation -->
+        {% include 'admin_sidebar.html' %}
+        
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            
+            <!-- Top Header Navbar with Working Search Form -->
+            <header class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <form action="{{ url_for('dashboard_search') }}" method="GET" class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="q" placeholder="Search employees, jobs, candidates..." required>
+                    </form>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="notification-menu">
+                        <button class="notification-bell" type="button" title="Notifications"
+                                aria-label="Notifications" aria-expanded="false"
+                                aria-controls="notification-panel">
+                            <i class="bi bi-bell" aria-hidden="true"></i>
+                            {% if notification_count %}
+                            <span class="notification-badge">{{ notification_count }}</span>
+                            {% endif %}
+                        </button>
+                        <div class="notification-panel" id="notification-panel"
+                             aria-label="Notifications">
+                            <div class="notification-panel-header">
+                                <strong>Notifications</strong>
+                                <span>{{ notification_count }} total</span>
+                            </div>
+                            <div class="notification-list">
+                                {% for notification in notifications %}
+                                <a class="notification-item" href="{{ notification.url }}">
+                                    <span class="notification-item-icon">
+                                        <i class="bi {{ notification.icon }}" aria-hidden="true"></i>
+                                    </span>
+                                    <span class="notification-item-content">
+                                        <strong>{{ notification.title }}</strong>
+                                        <span>{{ notification.message }}</span>
+                                        <small>{{ notification.time }}</small>
+                                    </span>
+                                </a>
+                                {% else %}
+                                <p class="notification-empty">You're all caught up.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-profile-menu">
+                        <div class="user-avatar">AD</div>
+                        <div class="user-info">
+                            <span class="name">{{ session.get('username', 'Admin') }}</span>
+                            <span class="role">HR Manager</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Container -->
+            <div class="dashboard-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, message in messages %}
+                        <div class="leave-flash-message" role="status">{{ message }}</div>
+                    {% endfor %}
+                {% endwith %}
+                
+                <!-- Header Title & Status -->
+                <div class="dashboard-header-row">
+                    <div class="header-title">
+                        <h1>Dashboard Overview</h1>
+                        <p>Welcome back, Admin! Here's what's happening across your organization today.</p>
+                    </div>
+                    <div class="header-meta">
+                        <span class="pipeline-stage-badge">
+                            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> System Active
+                        </span>
+                        <span class="text-muted">{{ current_date }}</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Clickable Metrics Cards Grid -->
+                <div class="metrics-grid">
+                    
+                    <!-- Total Employees -->
+                    <a href="{{ url_for('employees') }}" class="metric-card-link">
+                        <div class="metric-card">
+                            <div>
+                                <div class="metric-header">
+                                    <span class="metric-label">Total Employees</span>
+                                    <div class="metric-icon icon-blue"><i class="bi bi-people"></i></div>
+                                </div>
+                                <h2 class="metric-number">{{ employee_count }}</h2>
+                            </div>
+                            <div class="metric-footer">
+                                <span>In the employee directory</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Open Job Positions -->
+                    <a href="{{ url_for('jobs') }}" class="metric-card-link">
+                        <div class="metric-card">
+                            <div>
+                                <div class="metric-header">
+                                    <span class="metric-label">Open Job Positions</span>
+                                    <div class="metric-icon icon-purple"><i class="bi bi-briefcase"></i></div>
+                                </div>
+                                <h2 class="metric-number">{{ open_job_count }}</h2>
+                            </div>
+                            <div class="metric-footer">
+                                <span>Active listings</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Pending Applications -->
+                    <a href="{{ url_for('applications') }}" class="metric-card-link">
+                        <div class="metric-card">
+                            <div>
+                                <div class="metric-header">
+                                    <span class="metric-label">Pending Applications</span>
+                                    <div class="metric-icon icon-orange"><i class="bi bi-file-earmark-text"></i></div>
+                                </div>
+                                <h2 class="metric-number" style="color: #ea580c;">{{ pending_application_count }}</h2>
+                            </div>
+                            <div class="metric-footer">
+                                <span>Requires review</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Scheduled Interviews -->
+                    <a href="{{ url_for('interviews') }}" class="metric-card-link">
+                        <div class="metric-card">
+                            <div>
+                                <div class="metric-header">
+                                    <span class="metric-label">Scheduled Interviews</span>
+                                    <div class="metric-icon icon-green"><i class="bi bi-calendar-event"></i></div>
+                                </div>
+                                <h2 class="metric-number" style="color: #16a34a;">{{ scheduled_interview_count }}</h2>
+                            </div>
+                            <div class="metric-footer">
+                                <span>Upcoming sessions</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Quick Actions Bar -->
+                <div class="quick-actions-card">
+                    <div class="quick-actions-title">
+                        <h3><i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions</h3>
+                        <p>Manage your HR operations with ease.</p>
+                    </div>
+                    <div class="quick-buttons">
+                        <a href="{{ url_for('employees') }}" class="q-btn q-btn-blue"><i class="bi bi-person-plus-fill"></i> + Add Employee</a>
+                        <a href="{{ url_for('jobs') }}" class="q-btn q-btn-purple"><i class="bi bi-briefcase-fill"></i> + Post a Job</a>
+                        <a href="{{ url_for('applications') }}" class="q-btn q-btn-orange"><i class="bi bi-folder-check"></i> Review Applications</a>
+                        <a href="{{ url_for('interviews') }}" class="q-btn q-btn-green"><i class="bi bi-calendar-plus"></i> Schedule Interview</a>
+                    </div>
+                </div>
+
+                <section class="leave-approval-card" aria-labelledby="leaveApprovalHeading">
+                    <div class="panel-header">
+                        <div>
+                            <h3 class="panel-title" id="leaveApprovalHeading">Leave Requests</h3>
+                            <p class="panel-subtitle">Send pending requests to managers and record their final decision.</p>
+                        </div>
+                        <span class="leave-status-pill">{{ pending_leave_count }} awaiting action</span>
+                    </div>
+                    <div class="leave-approval-scroll">
+                        <table class="leave-approval-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th><th>Leave</th><th>Dates</th><th>Status</th><th>Manager</th><th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in leave_requests %}
+                                {% set leave_employee = leave_employees.get(leave.emp_id) %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ leave_employee.name if leave_employee else 'Employee' }}</strong>
+                                        {% if leave_employee %}<br><small class="text-muted">{{ leave_employee.id }} · {{ leave_employee.dept }}</small>{% endif %}
+                                    </td>
+                                    <td>{{ leave.leave_type }}<br><small class="text-muted">{{ leave.duration }}</small></td>
+                                    <td>{{ leave.start_date }}{% if leave.start_date != leave.end_date %}<br>to {{ leave.end_date }}{% endif %}</td>
+                                    <td><span class="leave-status-pill {% if leave.status == 'Awaiting Manager Approval' %}awaiting{% elif leave.status == 'Approved' %}approved{% elif leave.status == 'Rejected' %}rejected{% endif %}">{{ leave.status }}</span></td>
+                                    <td>
+                                        {% if leave.manager_name %}
+                                            {{ leave.manager_name }}<br><small class="text-muted">Sent {{ leave.manager_sent_at }}</small>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if leave.status == 'Pending' %}
+                                        <button class="leave-action-button" type="button" data-open-leave-dialog="managerApprovalDialog{{ leave.id }}">
+                                            <i class="bi bi-send me-1" aria-hidden="true"></i> Manager Approval
+                                        </button>
+                                        {% elif leave.status == 'Awaiting Manager Approval' %}
+                                        <form class="leave-decision-form" method="POST" action="{{ url_for('decide_leave_request', leave_id=leave.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                            <button class="leave-decision-button approve" type="submit" name="decision" value="Approved">Approve</button>
+                                            <button class="leave-decision-button reject" type="submit" name="decision" value="Rejected">Reject</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted small">Decision recorded</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" class="text-center text-muted py-4">No leave requests have been submitted yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {% for leave in leave_requests if leave.status == 'Pending' %}
+                {% set leave_employee = leave_employees.get(leave.emp_id) %}
+                <dialog class="leave-request-dialog" id="managerApprovalDialog{{ leave.id }}" aria-labelledby="managerApprovalTitle{{ leave.id }}">
+                    <form method="POST" action="{{ url_for('send_leave_for_manager_approval', leave_id=leave.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="leave-dialog-header">
+                            <h2 class="panel-title" id="managerApprovalTitle{{ leave.id }}">Send Leave for Manager Approval</h2>
+                            <button class="leave-action-button" type="button" data-close-leave-dialog aria-label="Close">Close</button>
+                        </div>
+                        <div class="leave-dialog-body">
+                            <p class="leave-dialog-detail"><strong>Employee:</strong> {{ leave_employee.name if leave_employee else 'Employee' }}{% if leave_employee %} ({{ leave_employee.id }}){% endif %}</p>
+                            {% if leave_employee %}
+                            <p class="leave-dialog-detail"><strong>Email:</strong> {{ leave_employee.email }} · <strong>Department:</strong> {{ leave_employee.dept }}</p>
+                            {% endif %}
+                            <p class="leave-dialog-detail"><strong>Leave type:</strong> {{ leave.leave_type }} ({{ leave.duration }})</p>
+                            <p class="leave-dialog-detail"><strong>Dates:</strong> {{ leave.start_date }} to {{ leave.end_date }}</p>
+                            <p class="leave-dialog-detail"><strong>Reason:</strong> {{ leave.reason }}</p>
+                            <label class="leave-dialog-detail" for="leaveManager{{ leave.id }}"><strong>Manager</strong></label>
+                            <select class="select-filter" id="leaveManager{{ leave.id }}" name="manager_id" required>
+                                <option value="" selected disabled>Select a manager</option>
+                                {% for manager in leave_managers if manager.id != leave.emp_id %}
+                                <option value="{{ manager.id }}">{{ manager.name }}{% if manager.dept %} · {{ manager.dept }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="leave-dialog-footer">
+                            <button type="button" class="leave-action-button" data-close-leave-dialog>Cancel</button>
+                            <button type="submit"><i class="bi bi-send me-1" aria-hidden="true"></i> Send for Approval</button>
+                        </div>
+                    </form>
+                </dialog>
+                {% endfor %}
+
+                <!-- Lower Section Grid (Recruitment Overview & Recent Activity) -->
+                <div class="lower-grid">
+                    
+                    <!-- Left Panel: Dynamic Recruitment Overview Chart with Year Filter -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h3 class="panel-title">Recruitment Overview</h3>
+                                <p class="panel-subtitle">Applications received in {{ selected_year }}</p>
+                            </div>
+                            <!-- Dynamic Year Dropdown Selector -->
+                            <form method="GET" action="{{ url_for('dashboard') }}" id="yearFilterForm">
+                                <select name="year" class="select-filter" onchange="document.getElementById('yearFilterForm').submit();">
+                                    {% for yr in available_years %}
+                                    <option value="{{ yr }}" {% if yr == selected_year %}selected{% endif %}>Year {{ yr }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+                        
+                        <!-- Chart.js Canvas -->
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="recruitmentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Dynamic Recent Activity Feed -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h3 class="panel-title">Recent Activity</h3>
+                            </div>
+                            <a href="{{ url_for('applications') }}" style="font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600;">View All <i class="bi bi-arrow-right"></i></a>
+                        </div>
+
+                        <ul class="activity-list">
+                            {% for activity in recent_activities %}
+<div class="activity-item d-flex align-items-center mb-3">
+  <div class="icon-box me-3">
+    <i class="bi {{ activity.icon }}"></i>
+  </div>
+  <div class="flex-grow-1">
+    <h6 class="mb-0">{{ activity.title }}</h6>
+    <small class="text-muted">{{ activity.description }}</small>
+  </div>
+  <small class="text-muted">{{ activity.date_str }}</small>
+</div>
+{% endfor %}
+                       </ul>
+                 </div>
+                </div>
+
+                <!-- Footer Tip Banner -->
+                <div class="dashboard-footer-tip">
+                    <span><i class="bi bi-lightbulb-fill"></i> <strong>Tip:</strong> Keep your job postings updated and respond to candidates promptly for a better hiring experience.</span>
+                    <span style="font-weight: 600; color: #94a3b8;">WorkforcePro v1.0</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Sidebar Toggle & Chart.js Initialization -->
+    <script>
+        const notificationMenu = document.querySelector('.notification-menu');
+        const notificationButton = notificationMenu.querySelector('.notification-bell');
+        const notificationPanel = notificationMenu.querySelector('.notification-panel');
+
+        notificationButton.addEventListener('click', () => {
+            const isOpen = notificationPanel.classList.toggle('is-open');
+            notificationButton.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!notificationMenu.contains(event.target)) {
+                notificationPanel.classList.remove('is-open');
+                notificationButton.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                notificationPanel.classList.remove('is-open');
+                notificationButton.setAttribute('aria-expanded', 'false');
+                notificationButton.focus();
+            }
+        });
+
+        // Render Dynamic Chart.js Graph
+        const ctx = document.getElementById('recruitmentChart').getContext('2d');
+        const monthlyData = {{ monthly_counts | tojson }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Applications',
+                    data: monthlyData,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll('[data-open-leave-dialog]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const dialog = document.getElementById(button.dataset.openLeaveDialog);
+                if (dialog) dialog.showModal();
+            });
+        });
+        document.querySelectorAll('[data-close-leave-dialog]').forEach((button) => {
+            button.addEventListener('click', () => button.closest('dialog').close());
+        });
+        document.querySelectorAll('.leave-request-dialog').forEach((dialog) => {
+            dialog.addEventListener('click', (event) => {
+                if (event.target === dialog) dialog.close();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% set header_employee = employee if employee is defined and employee else none %}
+{% set header_user = user if user is defined and user else none %}
+{% set header_name = header_employee.name if header_employee else (header_user.name or header_user.username if header_user else 'Employee') %}
+{% set header_email = header_employee.email if header_employee else (header_user.email if header_user else '') %}
+{% set header_avatar = header_employee.avatar if header_employee and header_employee.avatar else header_name[:2]|upper %}
+{% set employee_notifications = activities|default(employee_header_activities|default([])) %}
+<header class="employee-top-header">
+    <div class="employee-header-menu">
+        <button class="employee-notification-trigger" id="employeeNotificationsButton" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="employeeNotificationsPanel">
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            {% if employee_notifications %}
+            <span class="employee-notification-count">{{ employee_notifications|length }}</span>
+            {% endif %}
+        </button>
+        <section class="employee-menu-panel" id="employeeNotificationsPanel" aria-label="Recent notifications" hidden>
+            <div class="employee-menu-heading">
+                <h6>Notifications</h6>
+                <small>Your latest account activity</small>
+            </div>
+            {% if employee_notifications %}
+            <div class="employee-notification-list">
+                {% for activity in employee_notifications %}
+                <div class="employee-notification-item">
+                    <span class="employee-notification-icon"><i class="bi bi-bell" aria-hidden="true"></i></span>
+                    <div class="employee-notification-copy">
+                        <p>{{ activity.message }}</p>
+                        <small>{{ activity.timestamp }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="employee-notification-empty">
+                <i class="bi bi-bell-slash" aria-hidden="true"></i>
+                <span>You're all caught up. New activity will show up here.</span>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+    <div class="employee-header-menu">
+        <button class="employee-menu-trigger" id="employeeAccountButton" type="button" aria-expanded="false" aria-controls="employeeAccountPanel">
+            <span class="employee-avatar">{{ header_avatar }}</span>
+            <span class="employee-name">{{ header_name }}</span>
+            <i class="bi bi-chevron-down employee-chevron" aria-hidden="true"></i>
+        </button>
+        <nav class="employee-menu-panel employee-account-panel" id="employeeAccountPanel" aria-label="Account menu" hidden>
+            <div class="employee-menu-heading">
+                <strong>{{ header_name }}</strong>
+                {% if header_email %}<small>{{ header_email }}</small>{% endif %}
+            </div>
+            <a class="employee-account-link" href="{{ url_for('employee_portal') }}"><i class="bi bi-person-circle" aria-hidden="true"></i> My Profile</a>
+            <a class="employee-account-link logout" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Log Out</a>
+        </nav>
+    </div>
+</header>
+<script src="{{ url_for('static', filename='employee_header.js') }}" defer></script>

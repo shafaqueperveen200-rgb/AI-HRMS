@@ -1,0 +1,27 @@
+<aside class="sidebar">
+    <div>
+        <div class="sidebar-brand">
+            <div class="logo-icon">W</div>
+            <span class="logo-text">Workforce<span>Pro</span></span>
+            <button class="sidebar-toggle-btn" type="button" onclick="toggleSidebar()" aria-label="Close sidebar" aria-expanded="true" title="Close sidebar">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('emp_dashboard') }}" class="{% if request.endpoint == 'emp_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2" aria-hidden="true"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('employee_portal') }}" class="{% if request.endpoint == 'employee_portal' %}active{% endif %}"><i class="bi bi-person" aria-hidden="true"></i> My Profile</a></li>
+            <li><a href="{{ url_for('employee_jobs') }}" class="{% if request.endpoint == 'employee_jobs' %}active{% endif %}"><i class="bi bi-briefcase" aria-hidden="true"></i> Open Jobs</a></li>
+            <li><a href="{{ url_for('employee_interviews') }}" class="{% if request.endpoint == 'employee_interviews' %}active{% endif %}"><i class="bi bi-calendar-check" aria-hidden="true"></i> My Interviews</a></li>
+            <li><a href="{{ url_for('emp_attendance') }}" class="{% if request.endpoint == 'emp_attendance' %}active{% endif %}"><i class="bi bi-calendar-check" aria-hidden="true"></i> Attendance</a></li>
+            <li><a href="{{ url_for('emp_leave_requests') }}" class="{% if request.endpoint == 'emp_leave_requests' %}active{% endif %}"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Leave Requests</a></li>
+            <li><a href="{{ url_for('emp_ai_assistant') }}" class="{% if request.endpoint == 'emp_ai_assistant' %}active{% endif %}"><i class="bi bi-chat-dots" aria-hidden="true"></i> AI HR Assistant</a></li>
+        </ul>
+    </div>
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout') }}" class="logout-link"><i class="bi bi-box-arrow-left" aria-hidden="true"></i> Log Out</a>
+    </div>
+</aside>
+<button class="sidebar-reopen-btn" type="button" onclick="toggleSidebar()" aria-label="Open sidebar" aria-expanded="false" title="Open sidebar">
+    <i class="bi bi-list" aria-hidden="true"></i>
+</button>
+<script src="{{ url_for('static', filename='admin_sidebar.js') }}" defer></script>

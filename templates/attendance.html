@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+{% from "_pagination.html" import render_pagination with context %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management — WorkforcePro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='attendance.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        {% include 'admin_sidebar.html' %}
+        
+        <!-- Main Content -->
+        <main class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1 style="background-Color: #ffffff">Attendance Management</h1>
+                    <p style="color:#434147">Track daily employee check-ins, working hours, and leave statuses.</p>
+                </div>
+            </header>
+
+            <div class="dashboard-content attendance-admin-content">
+                <section class="attendance-summary-grid" aria-label="Monthly attendance summary">
+                    <article class="attendance-summary-card present-summary">
+                        <span>Present</span>
+                        <strong>{{ summary.present }}</strong>
+                        <small>present records this month</small>
+                    </article>
+                    <article class="attendance-summary-card late-summary">
+                        <span>Late</span>
+                        <strong>{{ summary.late }}</strong>
+                        <small>late check-ins this month</small>
+                    </article>
+                    <article class="attendance-summary-card halfday-summary">
+                        <span>Half Day</span>
+                        <strong>{{ summary.half_day }}</strong>
+                        <small>half-day records this month</small>
+                    </article>
+                    <article class="attendance-summary-card absent-summary">
+                        <span>Absent</span>
+                        <strong>{{ summary.absent }}</strong>
+                        <small>absence records this month</small>
+                    </article>
+                    <article class="attendance-summary-card leave-summary">
+                        <span>On Leave</span>
+                        <strong>{{ summary.on_leave }}</strong>
+                        <small>leave records this month</small>
+                    </article>
+                </section>
+
+                <section class="attendance-admin-grid">
+                    <div class="attendance-panel attendance-mark-panel">
+                        <div class="attendance-panel-heading">
+                            <div>
+                                <h2>Mark Attendance</h2>
+                                <p>Record or correct attendance for an employee and date.</p>
+                            </div>
+                        </div>
+                        <form action="{{ url_for('mark_employee_attendance') }}" method="POST" class="attendance-mark-form">
+                            <label>
+                                Employee
+                                <select name="emp_id" required>
+                                    <option value="">Select employee</option>
+                                    {% for employee in employees %}
+                                        <option value="{{ employee.id }}">{{ employee.name }} ({{ employee.id }})</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>
+                                Date
+                                <input type="date" name="date" value="{{ today_date }}" required>
+                            </label>
+                            <label>
+                                Status
+                                <select name="status" required>
+                                    <option value="Present">Present</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Half Day">Half Day</option>
+                                    <option value="Absent">Absent</option>
+                                    <option value="On Leave">On Leave</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="attendance-mark-button">Save Attendance</button>
+                        </form>
+                    </div>
+
+                    <div class="attendance-panel attendance-calendar-panel">
+                        <div class="attendance-panel-heading">
+                            <div>
+                                <h2>Monthly Attendance</h2>
+                                <p>Daily employee records for {{ month_name }} {{ year }}.</p>
+                            </div>
+                            <nav class="attendance-month-nav" aria-label="Attendance calendar month">
+                                <a href="{{ url_for('attendance', year=previous_month[0], month=previous_month[1]) }}" aria-label="Previous month">&larr;</a>
+                                <strong>{{ month_name }} {{ year }}</strong>
+                                <a href="{{ url_for('attendance', year=next_month[0], month=next_month[1]) }}" aria-label="Next month">&rarr;</a>
+                            </nav>
+                        </div>
+                        <div class="attendance-calendar-grid attendance-weekdays">
+                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+                        <div class="attendance-calendar-grid">
+                            {% for week in cal_matrix %}
+                                {% for day in week %}
+                                    {% if day == 0 %}
+                                        <div class="attendance-calendar-day empty-day"></div>
+                                    {% else %}
+                                        {% set date_key = "%04d-%02d-%02d"|format(year, month_num, day) %}
+                                        {% set day_summary = calendar_days.get(date_key) %}
+                                        <div class="attendance-calendar-day {% if day == current_day %}today{% endif %} {% if day_summary %}has-records{% endif %}"
+                                             {% if day_summary %}title="{{ day_summary.count }} employee record(s): {{ day_summary.present }} present, {{ day_summary.late }} late, {{ day_summary.half_day }} half day, {{ day_summary.absent }} absent, {{ day_summary.on_leave }} on leave"{% endif %}>
+                                            <span>{{ day }}</span>
+                                            {% if day_summary %}<small>{{ day_summary.count }} logged</small>{% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        <div class="attendance-calendar-legend">
+                            <span><i class="legend-dot present-dot"></i>Attendance recorded</span>
+                            <span><i class="legend-dot today-dot"></i>Today</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="pipeline-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; color: #0f172a; font-size: 1.25rem;">{{ month_name }} {{ year }} Logs</h3>
+                        <span style="color: #64748b; font-size: 0.875rem; font-weight: 500;">Records this month: <strong>{{ pagination.total }}</strong></span>
+                    </div>
+                    
+                    <table class="pipeline-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Date</th>
+                                <th>Check-In</th>
+                                <th>Check-Out</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Quick Update Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in attendance %}
+                            <tr>
+                                <td style="font-weight: 600; display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="candidate-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                                        {{ record.name[:2].upper() }}
+                                    </div>
+                                    <div>
+                                        {{ record.name }}
+                                        <span style="display: block; font-size: 0.75rem; color: #64748b; font-weight: 400;">{{ record.emp_id }}</span>
+                                    </div>
+                                </td>
+                                <td style="color: #64748b;">{{ record.date }}</td>
+                                <td style="color: #1e293b; font-weight: 500;">{{ record.check_in or '-' }}</td>
+                                <td style="color: #64748b;">{{ record.check_out or '-' }}</td>
+                                <td>
+                                    {% if record.status == 'Present' %}
+                                        <span class="pipeline-stage-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Present</span>
+                                    {% elif record.status == 'Late' %}
+                                        <span class="pipeline-stage-badge" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Late</span>
+                                    {% elif record.status == 'Half Day' %}
+                                        <span class="pipeline-stage-badge" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{{ record.status }}</span>
+                                    {% else %}
+                                        <span class="pipeline-stage-badge" style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{{ record.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <form action="{{ url_for('update_attendance', record_id=record.id) }}" method="POST" style="display: inline-flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                                        <select name="status" style="padding: 0.3rem; border-radius: 0.4rem; border: 1px solid #cbd5e1; font-size: 0.75rem; background: white;">
+                                            <option value="Present" {% if record.status == 'Present' %}selected{% endif %}>Present</option>
+                                            <option value="Late" {% if record.status == 'Late' %}selected{% endif %}>Late</option>
+                                            <option value="Half Day" {% if record.status == 'Half Day' %}selected{% endif %}>Half Day</option>
+                                            <option value="Absent" {% if record.status == 'Absent' %}selected{% endif %}>Absent</option>
+                                            <option value="On Leave" {% if record.status == 'On Leave' %}selected{% endif %}>On Leave</option>
+                                        </select>
+                                        <button type="submit" class="btn-job-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: #e7e9ef; color: #ffffff; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">
+                                    No attendance records found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {{ render_pagination(pagination) }}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

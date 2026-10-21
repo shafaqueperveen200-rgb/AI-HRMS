@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkforcePro — Modern HR Management</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom Plain CSS linked via Flask -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo-box">
+                <div class="logo-icon">W</div>
+                <span class="logo-text">Workforce<span>Pro</span></span>
+            </div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#trusted-by">Partners</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="{{ url_for('login') }}" class="btn-text">Log In</a>
+                <a href="{{ url_for('get_started') }}" class="btn-primary">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container text-center">
+            <div class="badge">
+                <span class="badge-dot"></span> WorkforcePro v2.0 Released
+            </div>
+            <h1 class="hero-title">
+                Empower Your Team with <span>WorkforcePro</span>
+            </h1>
+            <p class="hero-subtitle">
+                The all-in-one HR platform to automate recruitment, track real-time attendance, and simplify candidate evaluations effortlessly.
+            </p>
+            <div class="hero-buttons">
+               <a href="{{ url_for('get_started') }}" class="btn-primary">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn-secondary btn-large">Explore Demo</a>
+            </div>
+
+            <!-- Interviewer Portal Access Card -->
+            <div class="container" style="max-width: 850px; margin: 2.5rem auto 0 auto;">
+                <div class="interviewer-access-card" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1px solid #bfdbfe; border-radius: 1rem; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(37,99,235,0.05); text-align: left;">
+                    <div class="interviewer-access-copy" style="display: flex; align-items: center; gap: 1.25rem;">
+                        <div style="width: 50px; height: 50px; background: #2563eb; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                            📅
+                        </div>
+                        <div class="interviewer-access-action">
+                            <h3 style="margin: 0; color: #0f172a; font-size: 1.15rem; font-weight: 700;">Interviewer Portal Access</h3>
+                            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.85rem;">Are you an assigned panelist? Log in to view your scheduled candidate sessions and submit scorecards.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('login') }}" class="btn-primary" style="background: #7c3aed; color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; display: inline-block; white-space: nowrap; font-size: 0.9rem;">
+                            Access Interviewer Portal →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mockup Live Dynamic Preview Card -->
+            <div class="mockup-card" style="margin-top: 2.5rem;">
+                <div class="mockup-header">
+                    <div class="mockup-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="mockup-url">workforce-pro-dashboard.demo</span>
+                    <div></div>
+                </div>
+                <div class="mockup-body">
+                    <div class="stat-card">
+                        <p class="stat-label">Total Registered Employees</p>
+                        <p class="stat-value">{{ total_employees }}</p>
+                        <span class="stat-trend positive">↑ Real-time DB Count</span>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-label">Attendance Today</p>
+                        <p class="stat-value">{{ attendance_percentage }}%</p>
+                        <span class="stat-trend positive">On time & active</span>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-label">Active Job Openings</p>
+                        <p class="stat-value highlight">{{ active_jobs_count }} Roles</p>
+                        <span class="stat-trend">Recruitment Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Banner -->
+    <section id="trusted-by" class="trust-banner">
+        <div class="container text-center">
+            <p class="trust-title">Trusted by fast-growing startups & enterprises</p>
+            <div class="trust-logos">
+                <span>ACME CORP</span>
+                <span>NOVATECH</span>
+                <span>NEXUS LABS</span>
+                <span>PULSEFLOW</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container text-center">
+            <div class="section-header">
+                <h2>Everything you need to manage your workforce</h2>
+                <p>Designed for clarity and efficiency, making HR operations seamless for managers, candidates, and interviewers alike.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⏱</div>
+                    <h3>Attendance & Time Tracking</h3>
+                    <p>Monitor clock-ins, remote working hours, and shift schedules in real-time with automated reporting.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Candidate & Application Pipeline</h3>
+                    <p>Track incoming applicants, calculate AI resume matching scores, and manage hiring stages easily.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎙️</div>
+                    <h3>Interviewer Portal & Scorecards</h3>
+                    <p>Empower panelists with assigned candidate lists, scorecards, rating forms, and evaluation notes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="features-section" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+        <div class="container text-center">
+            <div class="section-header">
+                <h2>Streamlined Role-Based Access</h2>
+                <p>One platform providing tailored workflows for HR Administrators, Employees, and Evaluators.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" style="background: white;">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>HR Admin</h3>
+                    <p>Full control over employee directories, attendance, job postings, candidate applications, and interview scheduling.</p>
+                </div>
+                <div class="feature-card" style="background: white;">
+                    <div class="feature-icon">👤</div>
+                    <h3>Employee Portal</h3>
+                    <p>Update personal profiles, view internal job openings, submit applications, and clock daily attendance.</p>
+                </div>
+                <div class="feature-card" style="background: white;">
+                    <div class="feature-icon">📅</div>
+                    <h3>Interviewer Panelist</h3>
+                    <p>Access assigned candidate sessions, evaluate skills & problem solving, and submit digital scorecards to HR.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="bottom-cta text-center">
+        <div class="container">
+            <h2>Ready to transform your HR operations?</h2>
+            <p>Test out the complete workspace today and experience unified HR management.</p>
+            <div style="margin-top: 2rem;">
+                <a href="{{ url_for('get_started') }}" class="btn-white">Get Started for Free</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 WorkforcePro. Built for modern workplaces.</p>
+            <div class="footer-links">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#contactModal">Contact</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content text-start p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark" id="privacyModalTitle">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-secondary small">
+                    <p class="legal-updated">Last Updated: 17 October 2026</p>
+
+                    <h6>1. Introduction</h6>
+
+                    <p>AI HR Management System is designed to help organizations manage recruitment, interview scheduling, candidate evaluation, and employee information in one place. This Privacy Policy explains how information is handled when using the system.</p>
+
+                    <h6>2. Information We Collect</h6>
+
+                    <p>Depending on how the system is used, it may collect names, email addresses, account credentials, resumes, job applications, interview schedules, evaluation scores, feedback, and employee-related information.</p>
+
+                    <h6>3. How We Use Information</h6>
+
+                    <p>Information is used to manage user accounts, process job applications, organize interviews, maintain employee records, and support recruitment decisions through programmed Python logic.</p>
+
+                    <h6>4. Demo and Real Data</h6>
+
+                    <p>The demonstration version uses sample data for testing and presentation. When the system is configured for an organization, it may process real employee and candidate information. Users should not enter real personal or confidential information into the public demo.</p>
+
+                    <h6>5. AI-Based Evaluation</h6>
+
+                    <p>The system may generate resume scores or candidate assessments using programmed logic. These results may be incomplete or inaccurate and should be reviewed by authorized HR personnel. Automated scores should not be the sole basis for recruitment decisions.</p>
+
+                    <h6>6. Data Access and Security</h6>
+
+                    <p>Access to personal information should be limited to authorized users according to their roles. Reasonable security measures should be implemented to protect information from unauthorized access, loss, or misuse.</p>
+
+                    <h6>7. Data Storage and Sharing</h6>
+
+                    <p>Information may be stored in the database and hosting environment configured for the system. Personal information should not be shared with unauthorized parties. Any third-party services used to process personal information should be assessed and disclosed where appropriate.</p>
+
+                    <h6>8. Data Retention and Requests</h6>
+
+                    <p>Personal information should be retained only for as long as necessary for the intended purpose and applicable legal requirements. Requests to access, correct, or delete personal information may be made through the organization responsible for operating the system.</p>
+
+                    <h6>9. Changes to This Policy</h6>
+
+                    <p>This Privacy Policy may be updated when the system's features or data-handling practices change.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content text-start p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark" id="termsModalTitle">Terms of Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-secondary small">
+                    <p class="legal-updated">Last Updated: 17 October 2026</p>
+
+                    <h6>1. Acceptance of Terms</h6>
+
+                    <p>By accessing or using the AI HR Management System, you agree to these Terms &amp; Conditions.</p>
+
+                    <h6>2. Purpose of the System</h6>
+
+                    <p>The system is designed to support recruitment, resume screening, interview scheduling, candidate evaluation, and employee management. Its features may vary depending on the organization's configuration.</p>
+
+                    <h6>3. User Accounts</h6>
+
+                    <p>Users must provide accurate information and keep their login credentials confidential. Employees and administrators may access only the features and information permitted by their assigned roles.</p>
+
+                    <h6>4. Appropriate Use</h6>
+
+                    <p>Users must not access information without authorization, misuse personal data, share confidential records improperly, or attempt to interfere with the system's security or operation.</p>
+
+                    <h6>5. AI-Based Features</h6>
+
+                    <p>Resume scores, assessments, and recommendations generated by the system are intended to assist HR personnel. They may contain errors and must be reviewed by a qualified human decision-maker before employment decisions are made.</p>
+
+                    <h6>6. Data Confidentiality</h6>
+
+                    <p>Users must handle resumes, employee records, interview feedback, and candidate information responsibly. Organizations using the system are responsible for ensuring that its use complies with applicable privacy and employment requirements.</p>
+
+                    <h6>7. Project Deliverables and Ownership</h6>
+
+                    <p>Ownership and permitted use of the source code, design, custom features, and other project deliverables will be determined by the agreement between the developer and the client.</p>
+
+                    <h6>8. Availability and Updates</h6>
+
+                    <p>The system may require maintenance, updates, or temporary downtime. Continuous or error-free availability is not guaranteed.</p>
+
+                    <h6>9. Changes to These Terms</h6>
+
+                    <p>These terms may be updated as the system develops. The latest version will be published on this page.</p>
+
+                    <h6>10. Applicable Law</h6>
+
+                    <p>These terms are subject to applicable laws and regulations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-start p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark" id="contactModalTitle">Contact Support</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-secondary small">
+                    <p>Have a question about our AI HR Management System? Need help with recruitment features, interview scheduling, account access, or system functionality?</p>
+
+                    <p>For enquiries, support, or project-related discussions, please contact us by email.</p>
+                    <p>📧 <strong>Email:</strong> <a href="mailto:shafaque@gmail.com">shafaque@gmail.com</a></p>
+                    <p>🌐 <strong>HR Support Desk:</strong> Active 24/7 for Enterprise Workspace Administrators.</p>
+                    <p>We will review your message and respond as soon as possible.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

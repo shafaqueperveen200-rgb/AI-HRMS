@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Assigned Interviews — WorkforcePro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='employee_header.css') }}">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-layout">
+        {% include "employee_sidebar.html" %}
+
+        <main class="main-wrapper">
+            {% include "employee_header.html" %}
+            <header class="dashboard-header" style="padding: 1.25rem 2rem; background: #fff; border-bottom: 1px solid #e2e8f0;">
+                <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 700;">My Assigned Interview Sessions</h1>
+                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.875rem;">Evaluate your assigned candidates and complete scorecards.</p>
+            </header>
+
+            <div class="dashboard-content" style="padding: 2.5rem;">
+                <div class="attendance-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-bottom: 1.5rem; color: #0f172a; font-size: 1.2rem;">Assigned Candidate Queue</h3>
+                    
+                    <table class="table align-middle">
+                        <thead>
+                            <tr style="background: #f8fafc; font-size: 0.85rem; color: #64748b;">
+                                <th style="padding: 12px;">Candidate</th>
+                                <th>Role</th>
+                                <th>Date & Time</th>
+                                <th>Type</th>
+                                <th>Feedback Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in interviews %}
+                            <tr>
+                                <td style="font-weight: 600;">{{ item.candidate }}</td>
+                                <td style="color: #4f46e5;">{{ item.role }}</td>
+                                <td style="color: #64748b;">📅 {{ item.date }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ item.interview_type }}</span></td>
+                                <td>
+                                    {% if item.feedback_status == 'Submitted' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-1">Submitted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#scorecardModal{{ item.id }}">
+                                        <i class="bi bi-pencil-square me-1"></i> Scorecard & Feedback
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Scorecard Modal -->
+                            <div class="modal fade" id="scorecardModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <form action="{{ url_for('submit_interview_feedback', interview_id=item.id) }}" method="POST">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold">Interview Scorecard — {{ item.candidate }} ({{ item.role }})</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <table class="table table-bordered align-middle small mb-3">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Evaluation Criteria</th>
+                                                            <th style="width: 220px; text-align: center;">Rating (1 to 5 Stars)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="fw-semibold">Skills match</td>
+                                                            <td style="text-align: center;">
+                                                                <select name="skills_score" class="form-select form-select-sm" required>
+                                                                    <option value="5" {% if item.skills_score == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5/5)</option>
+                                                                    <option value="4" {% if item.skills_score == 4 %}selected{% endif %}>⭐⭐⭐⭐ (4/5)</option>
+                                                                    <option value="3" {% if item.skills_score == 3 %}selected{% endif %}>⭐⭐⭐ (3/5)</option>
+                                                                    <option value="2" {% if item.skills_score == 2 %}selected{% endif %}>⭐⭐ (2/5)</option>
+                                                                    <option value="1" {% if item.skills_score == 1 %}selected{% endif %}>⭐ (1/5)</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold">Problem solving</td>
+                                                            <td style="text-align: center;">
+                                                                <select name="problem_solving_score" class="form-select form-select-sm" required>
+                                                                    <option value="5" {% if item.problem_solving_score == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5/5)</option>
+                                                                    <option value="4" {% if item.problem_solving_score == 4 %}selected{% endif %}>⭐⭐⭐⭐ (4/5)</option>
+                                                                    <option value="3" {% if item.problem_solving_score == 3 %}selected{% endif %}>⭐⭐⭐ (3/5)</option>
+                                                                    <option value="2" {% if item.problem_solving_score == 2 %}selected{% endif %}>⭐⭐ (2/5)</option>
+                                                                    <option value="1" {% if item.problem_solving_score == 1 %}selected{% endif %}>⭐ (1/5)</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold">Communication</td>
+                                                            <td style="text-align: center;">
+                                                                <select name="communication_score" class="form-select form-select-sm" required>
+                                                                    <option value="5" {% if item.communication_score == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5/5)</option>
+                                                                    <option value="4" {% if item.communication_score == 4 %}selected{% endif %}>⭐⭐⭐⭐ (4/5)</option>
+                                                                    <option value="3" {% if item.communication_score == 3 %}selected{% endif %}>⭐⭐⭐ (3/5)</option>
+                                                                    <option value="2" {% if item.communication_score == 2 %}selected{% endif %}>⭐⭐ (2/5)</option>
+                                                                    <option value="1" {% if item.communication_score == 1 %}selected{% endif %}>⭐ (1/5)</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="fw-semibold">Role fit</td>
+                                                            <td style="text-align: center;">
+                                                                <select name="role_fit_score" class="form-select form-select-sm" required>
+                                                                    <option value="5" {% if item.role_fit_score == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5/5)</option>
+                                                                    <option value="4" {% if item.role_fit_score == 4 %}selected{% endif %}>⭐⭐⭐⭐ (4/5)</option>
+                                                                    <option value="3" {% if item.role_fit_score == 3 %}selected{% endif %}>⭐⭐⭐ (3/5)</option>
+                                                                    <option value="2" {% if item.role_fit_score == 2 %}selected{% endif %}>⭐⭐ (2/5)</option>
+                                                                    <option value="1" {% if item.role_fit_score == 1 %}selected{% endif %}>⭐ (1/5)</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold">Evaluation Notes & Strengths / Weaknesses</label>
+                                                    <textarea name="feedback_notes" class="form-control" rows="3" placeholder="Add overall notes, technical observations, and areas of improvement...">{{ item.feedback_notes or '' }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary btn-sm px-4">Save Scorecard</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    No interviews are currently assigned to your account.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

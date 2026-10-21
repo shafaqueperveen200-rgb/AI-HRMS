@@ -1,0 +1,27 @@
+<aside class="sidebar">
+    <div>
+        <div class="sidebar-brand">
+            <div class="logo-icon" style="min-font-weight:1.25rem;">W</div>
+            <span class="logo-text">Workforce<span>Pro</span></span>
+            <button class="sidebar-toggle-btn" type="button" onclick="toggleSidebar()" aria-label="Close sidebar" aria-expanded="true" title="Close sidebar">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint in ['dashboard', 'dashboard_search'] %}active{% endif %}"><i class="bi bi-grid-1x2" aria-hidden="true"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('employees') }}" class="{% if request.endpoint in ['employees', 'view_profile', 'add_employee', 'edit_profile'] %}active{% endif %}"><i class="bi bi-people" aria-hidden="true"></i> Employees</a></li>
+            <li><a href="{{ url_for('attendance') }}" class="{% if request.endpoint == 'attendance' %}active{% endif %}"><i class="bi bi-calendar-check" aria-hidden="true"></i> Attendance</a></li>
+            <li><a href="{{ url_for('jobs') }}" class="{% if request.endpoint in ['jobs', 'add_job', 'job_pipeline'] %}active{% endif %}"><i class="bi bi-briefcase" aria-hidden="true"></i> Jobs</a></li>
+            <li><a href="{{ url_for('candidates') }}" class="{% if request.endpoint in ['candidates', 'view_candidate'] %}active{% endif %}"><i class="bi bi-file-earmark-person" aria-hidden="true"></i> Candidates</a></li>
+            <li><a href="{{ url_for('applications') }}" class="{% if request.endpoint == 'applications' %}active{% endif %}"><i class="bi bi-folder2-open" aria-hidden="true"></i> Applications</a></li>
+            <li><a href="{{ url_for('interviews') }}" class="{% if request.endpoint == 'interviews' %}active{% endif %}"><i class="bi bi-mic" aria-hidden="true"></i> Interviews</a></li>
+        </ul>
+    </div>
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout') }}" class="logout-link"><i class="bi bi-box-arrow-left" aria-hidden="true"></i> Log Out</a>
+    </div>
+</aside>
+<button class="sidebar-reopen-btn" type="button" onclick="toggleSidebar()" aria-label="Open sidebar" aria-expanded="false" title="Open sidebar">
+    <i class="bi bi-list" aria-hidden="true"></i>
+</button>
+<script src="{{ url_for('static', filename='admin_sidebar.js') }}" defer></script>

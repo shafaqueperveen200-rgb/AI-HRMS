@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - AI HR Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='employee_header.css') }}">
+    <style>
+        :root { --sidebar-width: 250px; --sidebar-bg: #0f2942; --sidebar-active: #1d4ed8; --body-bg: #f8fafc; }
+        body { background-color: var(--body-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--sidebar-bg); color: #94a3b8; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; color: #ffffff; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar-nav { padding: 1rem; flex-grow: 1; }
+        .nav-item-link { display: flex; align-items: center; gap: 12px; padding: 10px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; transition: all 0.2s ease; }
+        .nav-item-link:hover { color: #ffffff; background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item-link.active { background-color: var(--sidebar-active); color: #ffffff; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+        .top-header { height: 64px; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 2rem; display: flex; align-items: center; justify-content: flex-end; gap: 20px; }
+        .card-custom { border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 8px; font-size: 0.85rem; }
+        .calendar-day { padding: 8px; border-radius: 6px; }
+        .calendar-day.active { background-color: #1d4ed8; color: #ffffff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include "employee_sidebar.html" %}
+
+    <div class="main-wrapper">
+        {% include "employee_header.html" %}
+
+        <main class="container-fluid p-4">
+            <div class="mb-4">
+                <h4 class="fw-bold mb-1 text-dark">Attendance</h4>
+                <p class="text-muted small mb-0">Track your daily check-in and check-out details.</p>
+            </div>
+
+            <!-- Top Action Status Banner -->
+            <div class="card-custom p-3 mb-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    {% if today_record %}
+                        <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <i class="bi bi-check-lg fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-success">Today's status: {{ today_record.status }}</div>
+                            {% if today_record.check_in not in (none, '', '-', '--') %}
+                                <div class="text-muted small">Checked in at {{ today_record.check_in }} {% if today_record.check_out not in (none, '', '-', '--') %}| Checked out at {{ today_record.check_out }}{% endif %}</div>
+                            {% else %}
+                                <div class="text-muted small">No check-in recorded yet.</div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="rounded-circle bg-warning text-white p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <i class="bi bi-clock fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-warning">You haven't checked in today</div>
+                            <div class="text-muted small">Please check in to start your work day.</div>
+                        </div>
+                    {% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('emp_attendance') }}">
+                    {% if not today_record or today_record.check_in in (none, '', '-', '--') %}
+                        <button type="submit" name="action" value="check_in" class="btn btn-primary px-4 btn-sm fw-semibold">Check In</button>
+                    {% else %}
+                        <button type="submit" name="action" value="check_out" class="btn btn-primary bg-opacity-10 text-primary border-0 px-4 btn-sm fw-semibold" {% if today_record.check_out not in (none, '', '-', '--') %}disabled{% endif %}>Check Out</button>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <!-- Calendar Card -->
+                <div class="col-lg-7">
+                    <div class="card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Monthly Attendance</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <a class="btn btn-outline-secondary btn-sm" aria-label="Previous month"
+                                   href="{{ url_for('emp_attendance', year=previous_month[0], month=previous_month[1]) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                                <span class="fw-bold small text-primary">{{ month_name }} {{ year }}</span>
+                                <a class="btn btn-outline-secondary btn-sm" aria-label="Next month"
+                                   href="{{ url_for('emp_attendance', year=next_month[0], month=next_month[1]) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="calendar-grid text-muted fw-semibold mb-2">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+
+                        <div class="calendar-grid">
+                            {% for week in cal_matrix %}
+                                {% for day in week %}
+                                    {% if day == 0 %}
+                                        <div class="calendar-day text-muted opacity-25"></div>
+                                    {% else %}
+                                        {% set date_key = "%04d-%02d-%02d"|format(year, month_num, day) %}
+                                        <div class="calendar-day {% if day == current_day %}active{% elif date_key in attendance_map %}bg-success text-white fw-bold{% endif %}"
+                                             {% if date_key in attendance_map %}title="{{ attendance_map[date_key] }}"{% endif %}
+                                             {% if day == current_day %}aria-current="date"{% endif %}>
+                                            {{ day }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Summary Card -->
+                <div class="col-lg-5">
+                    <div class="card-custom p-4 h-100">
+                        <h6 class="fw-bold text-dark mb-3">Attendance Summary</h6>
+                        <div class="d-flex flex-column gap-3 small">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <span class="text-muted"><i class="bi bi-dot text-success fs-5 align-middle"></i> Present</span>
+                                <span class="fw-bold text-dark">{{ summary.present }} days</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <span class="text-muted"><i class="bi bi-dot text-danger fs-5 align-middle"></i> Absent</span>
+                                <span class="fw-bold text-dark">{{ summary.absent }} days</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <span class="text-muted"><i class="bi bi-dot text-warning fs-5 align-middle"></i> Half Day</span>
+                                <span class="fw-bold text-dark">{{ summary.half_day }} days</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted"><i class="bi bi-briefcase me-2"></i> Working Days</span>
+                                <span class="fw-bold text-dark">{{ summary.working_days }} days</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Records Table -->
+            <div class="card-custom p-4">
+                <h6 class="fw-bold text-dark mb-3">Recent Records</h6>
+                <div class="table-responsive">
+                    <table class="table align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr><th class="ps-3">Date</th><th>Check In</th><th>Check Out</th><th class="text-end pe-3">Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in history %}
+                                <tr>
+                                    <td class="ps-3 fw-semibold text-dark">{{ record.date }}</td>
+                                    <td>{{ record.check_in }}</td>
+                                    <td>{{ record.check_out }}</td>
+                                    <td class="text-end pe-3">
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill">{{ record.status }}</span>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">No attendance records found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+</body>
+</html>

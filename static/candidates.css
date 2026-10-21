@@ -1,0 +1,175 @@
+/* --- Candidates Directory & Pipeline Styling --- */
+
+.pipeline-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.05);
+}
+
+.pipeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    margin-top: 1rem;
+}
+
+.pipeline-table th {
+    border-bottom: 2px solid #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.875rem 1rem;
+    font-weight: 700;
+}
+
+.pipeline-table td {
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+    color: #1e293b;
+    padding: 1rem;
+    transition: background 0.2s ease;
+}
+
+.pipeline-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.candidate-avatar {
+    width: 34px;
+    height: 34px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.pipeline-stage-badge {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.ai-match-score {
+    font-weight: 700;
+    color: #059669;
+}
+/* --- Global Link Underline Removal & Smooth Transitions --- */
+a {
+    text-decoration: none !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* --- Modern SaaS Buttons --- */
+.btn-job-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: white !important;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-job-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+}
+
+.btn-job-secondary {
+    background: #ffffff;
+    color: #4f46e5 !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.4rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-job-secondary:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #4338ca !important;
+    transform: translateY(-1px);
+}
+
+/* --- Polished Containers & Tables --- */
+.pipeline-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px -5px rgba(79, 70, 229, 0.04);
+}
+
+.pipeline-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.pipeline-table td {
+    padding: 1.1rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.pipeline-table tr {
+    transition: background-color 0.15s ease;
+}
+
+.pipeline-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* --- Stage Badges & Avatars --- */
+.pipeline-stage-badge {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+    border: 1px solid #c7d2fe;
+}
+
+.candidate-avatar {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6);
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI HR Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='employee_header.css') }}">
+    <style>
+        :root { --sidebar-width: 250px; --sidebar-bg: #0f2942; --sidebar-active: #1d4ed8; --body-bg: #f8fafc; }
+        body { background-color: var(--body-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--sidebar-bg); color: #94a3b8; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; color: #ffffff; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar-nav { padding: 1rem; flex-grow: 1; }
+        .nav-item-link { display: flex; align-items: center; gap: 12px; padding: 10px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; transition: all 0.2s ease; }
+        .nav-item-link:hover { color: #ffffff; background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item-link.active { background-color: var(--sidebar-active); color: #ffffff; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+        .top-header { height: 64px; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 2rem; display: flex; align-items: center; justify-content: flex-end; gap: 20px; }
+        .card-custom { border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+        .metric-box { border-radius: 12px; padding: 1.25rem; border: 1px solid transparent; }
+        .icon-circle-lg { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .motivation-card { position: relative; overflow: hidden; min-height: 250px; padding: 26px !important; border: 1px solid #e0e7ff; background: linear-gradient(145deg, #f5f3ff 0%, #eff6ff 55%, #ecfeff 100%); }
+        .motivation-card::before, .motivation-card::after { position: absolute; content: ""; border-radius: 50%; pointer-events: none; }
+        .motivation-card::before { width: 190px; height: 190px; top: -95px; right: -45px; background: rgba(129, 140, 248, .12); }
+        .motivation-card::after { width: 115px; height: 115px; bottom: -62px; left: -38px; background: rgba(45, 212, 191, .12); }
+        .motivation-card-content { position: relative; z-index: 1; }
+        .motivation-art { position: relative; display: grid; width: 112px; height: 112px; margin: 2px auto 17px; place-items: center; border: 1px solid rgba(129, 140, 248, .22); border-radius: 34px; background: linear-gradient(145deg, #fff 5%, #e0e7ff 100%); box-shadow: 0 14px 32px rgba(79, 70, 229, .14); transform: rotate(-5deg); }
+        .motivation-art > i { color: #4f46e5; font-size: 3.2rem; transform: rotate(5deg); }
+        .motivation-sparkle { position: absolute; display: grid; width: 32px; height: 32px; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #fbbf24; color: #fff; font-size: .9rem; }
+        .motivation-sparkle.one { top: -8px; right: -10px; }
+        .motivation-sparkle.two { bottom: 1px; left: -13px; background: #2dd4bf; }
+        .motivation-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: 1px solid #e0e7ff; border-radius: 999px; background: rgba(255, 255, 255, .78); color: #4f46e5; font-size: .75rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include "employee_sidebar.html" %}
+
+    <div class="main-wrapper">
+        {% include "employee_header.html" %}
+
+        <main class="container-fluid p-4">
+           <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>{{ greeting }}, {{ employee.name }}! 👋</h2>
+        <p class="text-muted">Here's an overview of your work and HR status.</p>
+    </div>
+    <div class="text-muted font-weight-bold">
+        {{ current_date }}
+    </div>
+</div>
+
+            <!-- Top Metric Cards Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="metric-box bg-primary bg-opacity-10 border-primary border-opacity-10">
+                        <div class="icon-circle-lg bg-primary text-white mb-3"><i class="bi bi-person-check"></i></div>
+                        <div class="text-muted small">Attendance</div>
+                        <div class="fw-bold fs-6 text-dark mt-1">Today</div>
+                        {% if stats.today_checked_in %}
+                            <span class="badge bg-success bg-opacity-10 text-success mt-2"><i class="bi bi-dot"></i> Checked In</span>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary mt-2"><i class="bi bi-dot"></i> Not Checked In</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-box bg-success bg-opacity-10 border-success border-opacity-10">
+                        <div class="icon-circle-lg bg-success text-white mb-3"><i class="bi bi-calendar-event"></i></div>
+                        <div class="text-muted small">Leave Balance</div>
+                        <div class="fw-bold fs-6 text-dark mt-1">Available</div>
+                        <div class="fw-bold text-success fs-5 mt-1">{{ stats.leave_balance }} <span class="fs-6 text-muted fw-normal">days</span></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-box bg-purple bg-opacity-10 style-purple" style="background-color: #f3e8ff; border-color: #e9d5ff;">
+                        <div class="icon-circle-lg text-white mb-3" style="background-color: #a855f7;"><i class="bi bi-briefcase"></i></div>
+                        <div class="text-muted small">Total Leaves</div>
+                        <div class="fw-bold fs-6 text-dark mt-1">This Year</div>
+                        <div class="fw-bold fs-5 mt-1" style="color: #a855f7;">{{ stats.total_approved_leaves }} <span class="fs-6 text-muted fw-normal">days</span></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-box bg-warning bg-opacity-10 border-warning border-opacity-10">
+                        <div class="icon-circle-lg bg-warning text-white mb-3"><i class="bi bi-clock-history"></i></div>
+                        <div class="text-muted small">Pending Requests</div>
+                        <div class="fw-bold fs-6 text-dark mt-1">Leave</div>
+                        <div class="fw-bold text-warning fs-5 mt-1">{{ stats.pending_requests }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lower Section: Activity & Motivational Banner -->
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Recent Activity</h5>
+    </div>
+
+    <div class="activity-list">
+        {% for activity in activities %}
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div>
+                    <p class="mb-0 fw-bold">{{ activity.message }}</p>
+                </div>
+                <small class="text-muted">
+                    {{ activity.timestamp or '' }}
+                </small>
+            </div>
+        {% else %}
+            <p class="text-muted">No recent activity.</p>
+        {% endfor %}
+    </div>
+</div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card-custom motivation-card text-center h-100 d-flex flex-column justify-content-center">
+                        <div class="motivation-card-content">
+                            <div class="motivation-art" aria-hidden="true">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span class="motivation-sparkle one"><i class="bi bi-stars"></i></span>
+                                <span class="motivation-sparkle two"><i class="bi bi-lightning-fill"></i></span>
+                            </div>
+                            <h5 class="fw-bold text-primary mb-2">Keep Going!</h5>
+                            <p class="text-muted small mb-3">Every step forward is progress. Keep building a great workday.</p>
+                            <span class="motivation-pill"><i class="bi bi-check-circle-fill"></i> One step at a time</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

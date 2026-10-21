@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+{% from "_pagination.html" import render_pagination with context %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Management — WorkforcePro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='interviews.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        {% include 'admin_sidebar.html' %}
+        
+        <!-- Main Content Area -->
+        <main class="main-wrapper">
+            <header class="dashboard-header" style="padding: 1.25rem 2rem; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
+                <div class="header-title">
+                    <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 700;background-Color: #ffffff">Interview Management</h1>
+                    <p style="margin: 4px 0 0 0; color: #434147; font-size: 0.875rem;">Schedule sessions, evaluate candidates consistently, and review interviewer feedback.</p>
+                </div>
+            </header>
+
+            <div class="dashboard-content" style="padding: 2.5rem;">
+                
+                <!-- Metric Summary Row -->
+                <div class="metrics-grid interview-metrics-grid">
+                    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                        <span class="metric-label" style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Total Scheduled</span>
+                        <h2 class="metric-number-default" style="margin: 0.5rem 0 0 0; color: #0f172a; font-size: 1.8rem;">{{ pagination.total }}</h2>
+                    </div>
+                    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                        <span class="metric-label" style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Today's Sessions</span>
+                        <h2 class="metric-number-warning" style="margin: 0.5rem 0 0 0; color: #d97706; font-size: 1.8rem;">{{ today_interview_count }}</h2>
+                    </div>
+                    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                        <span class="metric-label" style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Completed</span>
+                        <h2 class="metric-number-success" style="margin: 0.5rem 0 0 0; color: #059669; font-size: 1.8rem;">{{ completed_interview_count }}</h2>
+                    </div>
+                </div>
+
+                <!-- Schedule Interview Form Card -->
+                <div class="attendance-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; margin-bottom: 2rem;">
+                    <h3 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1.15rem;">Schedule New Interview</h3>
+                    <form action="{{ url_for('schedule_interview') }}" method="POST" class="interview-schedule-grid">
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem;">CANDIDATE NAME</label>
+                            <input type="text" name="candidate" required placeholder="e.g. John Doe" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem;">TARGET ROLE</label>
+                            <input type="text" name="role" required placeholder="e.g. Frontend Dev" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem;">INTERVIEWER</label>
+                            <select name="interviewer_id" required class="form-select form-select-sm">
+                                <option value="" disabled selected>Select an employee</option>
+                                {% for interviewer in interviewers %}
+                                    <option value="{{ interviewer.id }}">{{ interviewer.name }} ({{ interviewer.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 0.3rem;">DATE & TIME</label>
+                            <input type="datetime-local" name="date" required class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; white-space: nowrap;">Schedule</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Interviews Table Container -->
+                <div class="attendance-card" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                    <h3 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1.25rem;">Interview Pipeline & Feedback Hub</h3>
+                    <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr style="background: #f8fafc; font-size: 0.85rem; color: #64748b;">
+                                <th>Candidate</th>
+                                <th>Role</th>
+                                <th>Assigned Interviewer</th>
+                                <th>Date & Time</th>
+                                <th>Feedback</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in interviews %}
+                            <tr>
+                                <td style="font-weight: 600;">{{ item.candidate }}</td>
+                                <td style="color: #4f46e5; font-weight: 600;">{{ item.role }}</td>
+                                <td style="color: #1e293b;">{{ item.interviewer }}</td>
+                                <td style="color: #64748b;">📅 {{ item.date }}</td>
+                                <td>
+                                    {% if item.feedback_status == 'Submitted' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Submitted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.status == 'Scheduled' %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">Scheduled</span>
+                                    {% else %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <form action="{{ url_for('update_interview', interview_id=item.id) }}" method="POST" class="d-flex align-items-center justify-content-end gap-2 mb-2">
+                                        <label class="visually-hidden" for="interviewer{{ item.id }}">Reassign interviewer for {{ item.candidate }}</label>
+                                        <select id="interviewer{{ item.id }}" name="interviewer_id" required class="form-select form-select-sm" style="max-width: 210px;">
+                                            <option value="" disabled selected>Reassign interviewer</option>
+                                            {% for interviewer in interviewers %}
+                                                <option value="{{ interviewer.id }}">{{ interviewer.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Assign</button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#adminReviewModal{{ item.id }}">
+                                        View Scorecard
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Admin Review Modal -->
+                            <div class="modal fade" id="adminReviewModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content text-start">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title fw-bold">Evaluation Report — {{ item.candidate }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="small text-muted mb-3">Interviewer: <strong>{{ item.interviewer }}</strong> | Role: <strong>{{ item.role }}</strong></p>
+                                            
+                                            <ul class="list-group small mb-3">
+                                                <li class="list-group-item d-flex justify-content-between align-items: center;">
+                                                    Skills Match: <strong>{{ item.skills_score or 'N/A' }} / 5 ⭐</strong>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items: center;">
+                                                    Problem Solving: <strong>{{ item.problem_solving_score or 'N/A' }} / 5 ⭐</strong>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items: center;">
+                                                    Communication: <strong>{{ item.communication_score or 'N/A' }} / 5 ⭐</strong>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items: center;">
+                                                    Role Fit: <strong>{{ item.role_fit_score or 'N/A' }} / 5 ⭐</strong>
+                                                </li>
+                                            </ul>
+
+                                            <div class="p-3 bg-light rounded-3">
+                                                <small class="text-muted d-block fw-semibold mb-1">Interviewer Notes & Feedback:</small>
+                                                <p class="small text-dark mb-0">{{ item.feedback_notes or 'No written feedback submitted yet.' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    No interviews scheduled yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                    {{ render_pagination(pagination) }}
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

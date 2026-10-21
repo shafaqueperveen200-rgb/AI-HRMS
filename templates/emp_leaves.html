@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Requests - AI HR Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='employee_header.css') }}">
+    <style>
+        :root { --sidebar-width: 250px; --sidebar-bg: #0f2942; --sidebar-active: #1d4ed8; --body-bg: #f8fafc; }
+        body { background-color: var(--body-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--sidebar-bg); color: #94a3b8; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-brand { padding: 1.5rem; color: #ffffff; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar-nav { padding: 1rem; flex-grow: 1; }
+        .nav-item-link { display: flex; align-items: center; gap: 12px; padding: 10px 16px; color: #94a3b8; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; transition: all 0.2s ease; }
+        .nav-item-link:hover { color: #ffffff; background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item-link.active { background-color: var(--sidebar-active); color: #ffffff; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+        .top-header { height: 64px; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 2rem; display: flex; align-items: center; justify-content: flex-end; gap: 20px; }
+        .card-custom { border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+        .metric-box { border-radius: 12px; padding: 1.25rem; border: 1px solid transparent; }
+        .icon-circle-lg { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        {% include "employee_sidebar.html" %}
+
+    <div class="main-wrapper">
+        {% include "employee_header.html" %}
+
+        <main class="container-fluid p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-1 text-dark">Leave Requests</h4>
+                    <p class="text-muted small mb-0">Apply for leave and track your requests.</p>
+                </div>
+                <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#leaveModal">
+                    <i class="bi bi-plus-lg me-1"></i> Apply for Leave
+                </button>
+            </div>
+
+            <!-- Leave Balance Cards -->
+<div class="card-custom p-4 mb-4">
+    <h6 class="fw-bold text-dark mb-3">Leave Balance</h6>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="metric-box bg-primary bg-opacity-10">
+                <div class="icon-circle-lg bg-primary text-white mb-2"><i class="bi bi-person"></i></div>
+                <div class="fw-bold fs-4 text-primary">{{ leave_balances.casual }}</div>
+                <div class="text-muted small">Casual Leave</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-box bg-success bg-opacity-10">
+                <div class="icon-circle-lg bg-success text-white mb-2"><i class="bi bi-file-medical"></i></div>
+                <div class="fw-bold fs-4 text-success">{{ leave_balances.sick }}</div>
+                <div class="text-muted small">Sick Leave</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-box" style="background-color: #f3e8ff;">
+                <div class="icon-circle-lg text-white mb-2" style="background-color: #a855f7;"><i class="bi bi-award"></i></div>
+                <div class="fw-bold fs-4" style="color: #a855f7;">{{ leave_balances.privilege }}</div>
+                <div class="text-muted small">Privilege Leave</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-box bg-warning bg-opacity-10">
+                <div class="icon-circle-lg bg-warning text-white mb-2"><i class="bi bi-wallet2"></i></div>
+                <div class="fw-bold fs-4 text-warning">{{ leave_balances.earned }}</div>
+                <div class="text-muted small">Earned Leave</div>
+            </div>
+        </div>
+    </div>
+</div>
+            <!-- Leave Request History -->
+            <div class="card-custom p-4">
+                <h6 class="fw-bold text-dark mb-3">Leave Request History</h6>
+                <div class="table-responsive">
+                    <table class="table align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr><th class="ps-3">Date</th><th>Leave Type</th><th>Duration</th><th>Status</th><th class="text-end pe-3">Action</th></tr>
+                        </thead>
+                        <tbody>
+    {% for leave in leave_history %}
+        <tr>
+            <td class="ps-3 fw-semibold text-dark">{{ leave.start_date }} {% if leave.start_date != leave.end_date %}to {{ leave.end_date }}{% endif %}</td>
+            <td>{{ leave.leave_type }}</td>
+            <td>{{ leave.duration if leave.duration else '1 day' }}</td>
+            <td>
+                <span class="badge {% if leave.status == 'Approved' %}bg-success text-white{% elif leave.status == 'Rejected' %}bg-danger text-white{% elif leave.status == 'Awaiting Manager Approval' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} px-3 py-1 rounded-pill">
+                    {{ leave.status }}
+                </span>
+            </td>
+            <td class="text-end pe-3">
+                <button class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#viewLeaveModal{{ leave.id }}">View</button>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5" class="text-center text-muted py-3">No leave requests found. Click "Apply for Leave" to create one.</td>
+        </tr>
+    {% endfor %}
+</tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Apply Leave Modal -->
+    <div class="modal fade" id="leaveModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <form method="POST" action="/employee/leave-requests" class="modal-content border-0 shadow">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold text-dark">Apply for Leave</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Leave Type</label>
+                                <select name="leave_type" class="form-select small" required>
+                                    <option value="" disabled selected>Select Leave Type</option>
+                                    <option>Casual Leave</option>
+                                    <option>Sick Leave</option>
+                                    <option>Privilege Leave</option>
+                                    <option>Earned Leave</option>
+                                </select>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Start Date</label>
+                                    <input type="date" name="start_date" class="form-control small" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">End Date</label>
+                                    <input type="date" name="end_date" class="form-control small" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold">Reason</label>
+                                <textarea name="reason" class="form-control small" rows="3" placeholder="Enter reason for leave..." required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Right Side Banner inside Modal -->
+                        <div class="col-md-5 d-flex align-items-center justify-content-center">
+                            <div class="card-custom p-4 text-center w-100 h-100 d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+                                <i class="bi bi-calendar-week text-primary display-4 mb-2"></i>
+                                <h6 class="fw-bold text-primary mb-1">Need a break?</h6>
+                                <p class="text-muted small mb-0">Apply for leave easily and manage your time better.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dynamic View Leave Details Modals -->
+    {% for leave in leave_history %}
+    <div class="modal fade" id="viewLeaveModal{{ leave.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-custom p-3 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">Leave Request Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small">
+                    <p class="mb-2"><strong>Leave Type:</strong> {{ leave.leave_type }}</p>
+                    <p class="mb-2"><strong>Duration:</strong> {{ leave.duration }}</p>
+                    <p class="mb-2"><strong>Start Date:</strong> {{ leave.start_date }}</p>
+                    <p class="mb-2"><strong>End Date:</strong> {{ leave.end_date }}</p>
+                    <p class="mb-2"><strong>Status:</strong> 
+                        <span class="badge {% if leave.status == 'Approved' %}bg-success text-white{% elif leave.status == 'Rejected' %}bg-danger text-white{% elif leave.status == 'Awaiting Manager Approval' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} px-3 py-1 rounded-pill">
+                            {{ leave.status }}
+                        </span>
+                    </p>
+                    {% if leave.manager_name %}
+                    <p class="mb-2"><strong>Sent to manager:</strong> {{ leave.manager_name }}{% if leave.manager_sent_at %} on {{ leave.manager_sent_at }}{% endif %}</p>
+                    {% endif %}
+                    <p class="mb-0"><strong>Reason:</strong> {{ leave.reason or 'No reason provided.' }}</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post New Job Role</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_job.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        {% include 'admin_sidebar.html' %}
+        
+        <main class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1>Post New Job</h1>
+                    <p>Open a new career opportunity in your organization.</p>
+                </div>
+                <div class="header-profile">
+                    <a href="{{ url_for('jobs') }}" class="btn-job-secondary">← Back to Jobs</a>
+                </div>
+            </header>
+
+            <div class="dashboard-content" style="padding: 2.5rem;">
+                <div class="add-job-card">
+                    <div style="margin-bottom: 1.75rem;">
+                        <h2 style="margin: 0; color: #0f172a; font-size: 1.35rem;">Job Requisition Form</h2>
+                        <p style="color: #4f46e5; font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;">Define the requirements for the open position.</p>
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="job-form-grid">
+                            <div class="job-form-group full-width">
+                                <label>Job Title</label>
+                                <input type="text" name="title" placeholder="e.g. Senior Full Stack Engineer" required>
+                            </div>
+                            
+                            <div class="job-form-group">
+                                <label>Department</label>
+                                <input type="text" name="dept" placeholder="e.g. Engineering" required>
+                            </div>
+
+                            <div class="job-form-group">
+                                <label>Location</label>
+                                <input type="text" name="location" placeholder="e.g. Jamshedpur / Remote" required>
+                            </div>
+
+                            <div class="job-form-group full-width">
+                                <label>Employment Type</label>
+                                <select name="type">
+                                    <option value="Full-Time">Full-Time</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Remote">Remote</option>
+                                    <option value="Internship">Internship</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="job-form-actions">
+                            <button type="submit" class="btn-job-primary" style="flex: 1; justify-content: center;">🚀 Publish Job Posting</button>
+                            <a href="{{ url_for('jobs') }}" class="btn-job-secondary" style="flex: 1; justify-content: center; text-align: center;">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

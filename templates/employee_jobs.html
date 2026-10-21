@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Jobs — WorkforcePro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='jobs.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='employee_header.css') }}">
+    <style>
+        body { margin: 0; background: #f8fafc; color: #0f172a; }
+        .employee-jobs-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .employee-jobs-header h1 { margin: 0; }
+        .employee-jobs-header p { color: #64748b; margin: .4rem 0 0; }
+        .employee-jobs-layout { min-height: 100vh; padding: 2rem; }
+        .employee-jobs-main { max-width: 1200px; margin: 0 auto; }
+        .employee-jobs-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2rem; }
+        .employee-jobs-nav a { color: #4338ca; text-decoration: none; font-weight: 600; }
+        .employee-jobs-alert { padding: .85rem 1rem; border-radius: .6rem; margin-bottom: 1rem; background: #ecfdf5; color: #065f46; }
+        .employee-jobs-alert.warning { background: #fffbeb; color: #92400e; }
+        .employee-apply-form { margin-top: 1rem; }
+        .employee-applied-status { color: #4338ca; font-weight: 700; }
+        .employee-job-details { display: flex; flex-wrap: wrap; gap: .5rem 1rem; color: #64748b; font-size: .9rem; }
+        .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        @media (max-width: 640px) { .employee-jobs-layout { padding: 1rem; } .employee-jobs-header { align-items: flex-start; flex-direction: column; } }
+    </style>
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        {% include "employee_sidebar.html" %}
+        <div class="main-wrapper">
+    {% include "employee_header.html" %}
+    <main class="employee-jobs-layout">
+        <div class="employee-jobs-main">
+            <header class="employee-jobs-header">
+                <div>
+                    <h1>Open Jobs</h1>
+                    <p>Browse current openings and track the jobs you have applied for, {{ employee.name }}.</p>
+                </div>
+                <span>Showing {{ jobs|length }} of {{ active_job_count }} active opening(s)</span>
+            </header>
+
+            <form class="jobs-filter-bar" method="GET" action="{{ url_for('employee_jobs') }}">
+                <label>
+                    <span class="visually-hidden">Search jobs</span>
+                    <input type="search" name="q" value="{{ search_query }}" placeholder="Search title, department, or location">
+                </label>
+                <label>
+                    <span class="visually-hidden">Department</span>
+                    <select name="department">
+                        <option value="">All departments</option>
+                        {% for department in departments %}
+                            <option value="{{ department }}" {% if department_filter == department %}selected{% endif %}>{{ department }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    <span class="visually-hidden">Job type</span>
+                    <select name="type">
+                        <option value="">All job types</option>
+                        {% for job_type in job_types %}
+                            <option value="{{ job_type }}" {% if type_filter == job_type %}selected{% endif %}>{{ job_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit" class="btn-job-primary">Search jobs</button>
+                {% if search_query or department_filter or type_filter %}
+                    <a href="{{ url_for('employee_jobs') }}">Clear filters</a>
+                {% endif %}
+            </form>
+
+            {% if applied %}<div class="employee-jobs-alert">Your application was submitted successfully.</div>{% endif %}
+            {% if already_applied %}<div class="employee-jobs-alert warning">You have already applied for that position.</div>{% endif %}
+
+            <div class="jobs-grid">
+                {% for job in jobs %}
+                    {% set application = applications_by_job.get(job.title) %}
+                    <article class="job-card">
+                        <div class="employee-jobs-header">
+                            <span class="job-badge-active">{{ job.status }}</span>
+                            <span class="employee-applied-status">{% if application %}{{ application.status }}{% endif %}</span>
+                        </div>
+                        <h2>{{ job.title }}</h2>
+                        <p class="employee-job-details">
+                            <span>{{ job.dept }}</span>
+                            <span>{{ job.location }}</span>
+                            <span>{{ job.type }}</span>
+                        </p>
+                        {% if application %}
+                            <p class="employee-applied-status">Applied on {{ application.date }}</p>
+                        {% else %}
+                            <form class="employee-apply-form" method="POST" action="{{ url_for('apply_for_job', job_id=job.id) }}">
+                                <button type="submit" class="btn-job-primary">Apply for this job</button>
+                            </form>
+                        {% endif %}
+                    </article>
+                {% else %}
+                    <div class="jobs-empty-state">
+                        {% if active_job_count %}
+                            <h2>No jobs match these filters</h2>
+                            <p>Try another search or clear your filters to see all active openings.</p>
+                        {% else %}
+                            <h2>No active jobs right now</h2>
+                            <p>New job openings will appear here when they are posted.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+        </div>
+    </div>
+</body>
+</html>

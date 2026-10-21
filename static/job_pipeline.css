@@ -1,0 +1,69 @@
+/* --- Pipeline Page Styling --- */
+
+.pipeline-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.05);
+}
+
+.pipeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    margin-top: 1rem;
+}
+
+.pipeline-table th {
+    border-bottom: 2px solid #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.875rem 1rem;
+    font-weight: 700;
+}
+
+.pipeline-table td {
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+    color: #1e293b;
+    padding: 1rem;
+    transition: background 0.2s ease;
+}
+
+.pipeline-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Candidate Avatar Circle */
+.candidate-avatar {
+    width: 34px;
+    height: 34px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Stage Badge */
+.pipeline-stage-badge {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+/* AI Match Highlight */
+.ai-match-score {
+    font-weight: 700;
+    color: #059669;
+}

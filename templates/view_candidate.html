@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Profile — {{ name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='view_candidate.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body class="jobs-page-body">
+    <div class="dashboard-layout">
+        {% include 'admin_sidebar.html' %}
+        
+        <main class="main-wrapper">
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1>Candidate Evaluation</h1>
+                    <p>Detailed profile review and hiring pipeline action center.</p>
+                </div>
+                <div class="header-profile">
+                    <a href="{{ url_for('candidates') }}" class="btn-job-secondary">← Back to Candidates</a>
+                </div>
+            </header>
+
+            <div class="dashboard-content candidate-profile-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, message in messages %}
+                        <div class="leave-flash-message" role="status">{{ message }}</div>
+                    {% endfor %}
+                {% endwith %}
+                <div class="pipeline-container candidate-profile-card">
+                    
+                    <!-- Candidate Header Info -->
+                    <div class="profile-card-header">
+                        <div class="candidate-profile-identity">
+                            <div class="candidate-avatar" style="width: 60px; height: 60px; font-size: 1.25rem;">
+                                {{ name[:2].upper() }}
+                            </div>
+                            <div>
+                                <h2 style="margin: 0; color: #0f172a; font-size: 1.5rem;">{{ name }}</h2>
+                                <p style="color: #64748b; font-size: 0.9rem; margin: 0.25rem 0 0 0;">📧 {{ candidate.email }} &nbsp;•&nbsp; 📞 {{ candidate.phone }}</p>
+                            </div>
+                        </div>
+                        <div class="candidate-profile-actions">
+                            <!-- Direct CV PDF Button -->
+                            {% if candidate.resume_file %}
+                                <a href="{{ url_for('static', filename='resumes/' + candidate.resume_file) }}" target="_blank" rel="noopener" class="btn-job-secondary" style="background: #eef2ff; color: #4f46e5; border-color: #c7d2fe; text-decoration: none;">
+                                    📄 View CV.pdf
+                                </a>
+                            {% endif %}
+                            <span class="ai-match-score" style="background: #d1fae5; color: #065f46; padding: 0.35rem 0.85rem; border-radius: 2rem; font-size: 0.8rem;">✨ AI Match: {{ candidate.match }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="profile-info-grid">
+                        <div class="profile-info-box">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 0.25rem;">Experience Level</span>
+                            <span style="font-size: 1.05rem; font-weight: 600; color: #1e293b;">{{ candidate.exp }}</span>
+                        </div>
+                        <div class="profile-info-box">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 0.25rem;">Current Hiring Stage</span>
+                            <span class="pipeline-stage-badge" style="font-size: 0.9rem; margin-top: 0.2rem;">{{ candidate.stage }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Skills & Summary -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #0f172a; font-size: 1rem; margin-bottom: 0.5rem;">Core Skills</h4>
+                        <p style="background: #eef2ff; color: #4f46e5; padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; margin: 0;">{{ candidate.skills }}</p>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="color: #0f172a; font-size: 1rem; margin-bottom: 0.5rem;">Professional Summary</h4>
+                        <p style="color: #475569; font-size: 0.95rem; line-height: 1.5; background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; margin: 0;">{{ candidate.summary }}</p>
+                    </div>
+
+                    <!-- Interactive Stage Update Form -->
+                    <div class="profile-action-box">
+                        <h4 style="color: #0f172a; font-size: 1rem; margin-bottom: 0.75rem;">Manage Hiring Pipeline Stage</h4>
+                        <form action="{{ url_for('update_candidate_stage', name=name) }}" method="POST" class="profile-stage-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <select name="stage" style="padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; font-size: 0.9rem; flex: 1; background: white;">
+                                <option value="Applied" {% if candidate.stage == 'Applied' %}selected{% endif %}>Applied</option>
+                                <option value="Screening" {% if candidate.stage == 'Screening' %}selected{% endif %}>Screening</option>
+                                <option value="Interviewing" {% if candidate.stage == 'Interviewing' %}selected{% endif %}>Interviewing</option>
+                                <option value="Hired" {% if candidate.stage == 'Hired' %}selected{% endif %}>Hired</option>
+                                <option value="Rejected" {% if candidate.stage == 'Rejected' %}selected{% endif %}>Rejected</option>
+                            </select>
+                            <button type="submit" class="btn-job-primary" style="padding: 0.6rem 1.25rem;">Update Status</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
