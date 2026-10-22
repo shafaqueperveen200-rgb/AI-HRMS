@@ -20,7 +20,10 @@ if not os.environ.get("WORKFORCE_SECRET_KEY"):
     )
 
 # --- CONFIG FOR DATABASE & RESUME UPLOADS ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///workforce.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'sqlite:///workforce.db'
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
