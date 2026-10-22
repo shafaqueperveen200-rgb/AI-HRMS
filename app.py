@@ -2339,10 +2339,16 @@ def migrate_database_schema():
                 )
 
 
-if __name__ == "__main__":
+def initialize_database():
     with app.app_context():
         db.create_all()
         migrate_database_schema()
         seed_database()
-        print("Database initialized and seeded successfully!")
+
+
+initialize_database()
+
+
+if __name__ == "__main__":
+    print("Database initialized and seeded successfully!")
     app.run(debug=True)
